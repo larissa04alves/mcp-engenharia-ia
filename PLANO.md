@@ -24,8 +24,7 @@ a reescrita das 12.
 | 7 — As outras 8 fichas | ⏳ |
 | 8 — Fechamento | ⏳ |
 
-Branch `feat/criar-estrutura-inicial`. Etapas 0 a 2 commitadas e publicadas;
-`nucleo.py` e `servidor.py` ainda não commitados.
+Fatia 1 integrada ao `master` pelo PR #1. Etapas seguintes em branch novo a partir dele.
 
 ```
 pyproject.toml    uv, requires-python >=3.12
