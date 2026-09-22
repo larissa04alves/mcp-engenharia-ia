@@ -70,7 +70,10 @@ Sem `indice/` gerado, o servidor não sobe e explica o que fazer.
 A fundamentação pela literatura é exigência do professor (§3.6). Um servidor que sobe sem
 ela pode ser demonstrado por engano sem a parte que foi pedida.
 
-Consequência: nada roda antes de `literatura/` receber conteúdo.
+A checagem é implementada junto com o RAG que ela protege (fatia 2 do `PLANO.md`), não no
+primeiro dia. No produto final ela existe; durante a fatia 1 não há índice a proteger
+porque não há fundamentação na saída. Isso é o que permite construir e demonstrar o
+servidor antes de o grupo escolher os PDFs.
 
 ---
 
