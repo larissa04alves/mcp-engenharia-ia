@@ -70,7 +70,35 @@ Sem `indice/` gerado, o servidor não sobe e explica o que fazer.
 A fundamentação pela literatura é exigência do professor (§3.6). Um servidor que sobe sem
 ela pode ser demonstrado por engano sem a parte que foi pedida.
 
-Consequência: nada roda antes de `literatura/` receber conteúdo.
+A checagem é implementada junto com o RAG que ela protege (fatia 2 do `PLANO.md`), não no
+primeiro dia. No produto final ela existe; durante a fatia 1 não há índice a proteger
+porque não há fundamentação na saída. Isso é o que permite construir e demonstrar o
+servidor antes de o grupo escolher os PDFs.
+
+### 7. Campo `pergunta` em cada ficha
+
+A Tabela 2 do artigo lista os campos de uma prática e **não inclui `pergunta`**.
+A implementação adicionou esse campo.
+
+Ele é o que o servidor devolve quando a prática fica *indeterminada*, e é o que faz o
+passo 4 da §5.4 de `mcp-engenharia-ia.md` existir ("se houver práticas indeterminadas,
+pergunta à equipe e repete a seleção"). Sem ele, o assistente teria que inventar a
+pergunta, e duas execuções perguntariam coisas diferentes.
+
+### 8. `MCPServer` no lugar de `FastMCP`
+
+**Documento (§5.1):** "`mcp` (SDK oficial, FastMCP)"
+**Implementação:** `from mcp.server.mcpserver import MCPServer`
+
+O SDK oficial publicou a versão 2.x e renomeou a classe. Os decoradores `@servidor.tool`,
+`@servidor.resource` e `@servidor.prompt` e o `mcp dev` continuam idênticos — é só o nome
+da classe que mudou.
+
+A alternativa seria fixar `mcp<2` para manter o nome literal do documento. Não compensa:
+seria começar o projeto em uma versão já substituída para preservar uma palavra.
+
+A decisão do documento — usar o SDK oficial e seus decoradores em vez de implementar
+JSON-RPC na mão — continua valendo integralmente.
 
 ---
 

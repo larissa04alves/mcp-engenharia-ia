@@ -1,0 +1,187 @@
+{
+  "versao": "1.0",
+  "cobertura": "parcial",
+
+  "criterios": {
+    "impacto": "O quanto deixar essa prática de lado pode prejudicar o projeto?",
+    "necessidade": "O quanto essa prática é necessária para o desenvolvimento continuar?",
+    "dependencia": "Outras atividades dependem da realização dessa prática?",
+    "esforco": "Quanto trabalho é necessário para realizar essa prática?"
+  },
+
+  "escala": {
+    "1": "Baixo",
+    "2": "Médio",
+    "3": "Alto"
+  },
+
+  "formula": "P = I + N + D + (4 - E)",
+
+  "faixas": [
+    { "nivel": "Essencial", "min": 9, "max": 12 },
+    { "nivel": "Recomendada", "min": 6, "max": 8 },
+    { "nivel": "Evolução", "min": 4, "max": 5 }
+  ],
+
+  "ajustes": [
+    {
+      "id": "concepcao",
+      "descricao": "Projeto em estágio de concepção",
+      "quando": { "campo": "estagio", "igual": "concepcao" },
+      "alvo": { "grupo": "requisitos_planejamento" },
+      "criterio": "necessidade",
+      "delta": 1
+    },
+    {
+      "id": "evolucao",
+      "descricao": "Projeto em evolução",
+      "quando": { "campo": "estagio", "igual": "evolucao" },
+      "alvo": { "grupo": "dados_documentacao" },
+      "criterio": "impacto",
+      "delta": 1
+    },
+    {
+      "id": "equipe_pequena",
+      "descricao": "Equipe com até três integrantes",
+      "quando": { "campo": "tamanho_equipe", "ate": 3 },
+      "alvo": { "documental_extensa": true },
+      "criterio": "esforco",
+      "delta": -1
+    },
+    {
+      "id": "dados_sensiveis",
+      "descricao": "Dados pessoais ou sensíveis",
+      "quando": { "campo": "dados_sensiveis", "igual": true },
+      "alvo": { "ids": ["DD1", "DD2", "DD5"] },
+      "criterio": "impacto",
+      "delta": 1
+    },
+    {
+      "id": "problemas_relatados",
+      "descricao": "Problemas de dados já relatados pela equipe",
+      "quando": { "campo": "problemas_limitacoes", "preenchido": true },
+      "alvo": { "ids": ["DD4", "DD5"] },
+      "criterio": "necessidade",
+      "delta": 1
+    }
+  ],
+
+  "praticas": [
+    {
+      "id": "RP1",
+      "grupo": "requisitos_planejamento",
+      "nome": "Definir o objetivo do sistema",
+      "campo": "objetivo",
+      "documental_extensa": false,
+      "descricao": "O objetivo declara qual problema o sistema resolve e para quem, em uma frase que a equipe inteira consiga repetir sem consultar documento.",
+      "condicoes": {
+        "atendida": "A equipe informou o objetivo do sistema.",
+        "pendente": "A equipe declarou que o objetivo ainda não foi definido.",
+        "indeterminada": "O objetivo não foi informado e ninguém perguntou ainda."
+      },
+      "pergunta": "Qual problema esse sistema precisa resolver, e para quem?",
+      "pontuacoes": { "impacto": 3, "necessidade": 3, "dependencia": 3, "esforco": 1 },
+      "orientacao": "Escrever em uma frase o problema que o sistema resolve e quem é atendido por ele, antes de escolher técnica ou conjunto de dados.",
+      "proxima_acao": "Escrever a frase do objetivo e validá-la com quem vai usar o sistema.",
+      "termos_busca": [
+        "objetivo do sistema",
+        "definição do problema",
+        "requisitos mal definidos",
+        "fase de concepção",
+        "engenharia de requisitos para ML"
+      ],
+      "referencias": [
+        "MARTÍNEZ-FERNÁNDEZ et al. (2022). Software Engineering for AI-Based Systems: A Survey. ACM TOSEM 31(2). [portfólio PBL1, 4.1]",
+        "NAHAR et al. (2023). A Meta-Summary of Challenges in Building Products with ML Components. CAIN 2023. arXiv:2304.00078 [portfólio PBL1, 4.4]",
+        "KALINOWSKI et al. (2025). Naming the Pain in Machine Learning-Enabled Systems Engineering. JSS. arXiv:2406.04359 [portfólio PBL1, 4.7]"
+      ]
+    },
+    {
+      "id": "RP6",
+      "grupo": "requisitos_planejamento",
+      "nome": "Registrar decisões do projeto",
+      "campo": "registro_decisoes",
+      "documental_extensa": true,
+      "descricao": "As escolhas do projeto — de dado, de técnica, de arquitetura, e o que foi descartado — ficam num registro que a equipe consulta e que sobrevive à saída de quem decidiu.",
+      "condicoes": {
+        "atendida": "A equipe informou onde as decisões do projeto são registradas.",
+        "pendente": "A equipe declarou que não mantém registro de decisões.",
+        "indeterminada": "O registro de decisões não foi informado e ninguém perguntou ainda."
+      },
+      "pergunta": "Onde vocês registram as decisões do projeto e o motivo de cada uma?",
+      "pontuacoes": { "impacto": 2, "necessidade": 1, "dependencia": 1, "esforco": 2 },
+      "orientacao": "Manter um registro curto por decisão: o que foi decidido, quando, por quê, e qual alternativa foi descartada.",
+      "proxima_acao": "Criar o arquivo de decisões e registrar nele a última decisão tomada pela equipe.",
+      "termos_busca": [
+        "decisões de projeto",
+        "registro de decisões",
+        "documentação de arquitetura",
+        "boas práticas de projeto",
+        "rastreabilidade"
+      ],
+      "referencias": [
+        "NAZIR; BUCAIONI; PELLICCIONE (2024). Architecting ML-Enabled Systems: Challenges, Best Practices, and Design Decisions. JSS 207, 111860. [portfólio PBL1, 4.5]",
+        "NAHAR et al. (2023). A Meta-Summary of Challenges in Building Products with ML Components. CAIN 2023. arXiv:2304.00078 [portfólio PBL1, 4.4]",
+        "WU (2024). An Exploratory Study of V-Model in Building ML-Enabled Software. CAIN 2024. arXiv:2308.05381 [portfólio PBL1, 4.8]"
+      ]
+    },
+    {
+      "id": "DD1",
+      "grupo": "dados_documentacao",
+      "nome": "Identificar a fonte dos dados",
+      "campo": "fonte_dados",
+      "documental_extensa": false,
+      "descricao": "A origem dos dados está identificada: de onde vêm, quem os produz e em que período foram coletados.",
+      "condicoes": {
+        "atendida": "A equipe informou a fonte dos dados.",
+        "pendente": "A equipe declarou que a origem dos dados não está identificada.",
+        "indeterminada": "A fonte dos dados não foi informada e ninguém perguntou ainda."
+      },
+      "pergunta": "De onde vêm os dados que vocês usam?",
+      "pontuacoes": { "impacto": 3, "necessidade": 3, "dependencia": 3, "esforco": 1 },
+      "orientacao": "Registrar a fonte, o período de coleta e as principais características dos dados.",
+      "proxima_acao": "Criar o registro de documentação da fonte dos dados.",
+      "termos_busca": [
+        "fonte dos dados",
+        "origem dos dados",
+        "coleta de dados",
+        "gestão de dados",
+        "proveniência"
+      ],
+      "referencias": [
+        "PALEYES; URMA; LAWRENCE (2023). Challenges in Deploying Machine Learning: A Survey of Case Studies. ACM Computing Surveys 55(6). arXiv:2011.09926 [portfólio PBL1, 4.3]",
+        "NAHAR et al. (2023). A Meta-Summary of Challenges in Building Products with ML Components. CAIN 2023. arXiv:2304.00078 [portfólio PBL1, 4.4]",
+        "KREUZBERGER; KÜHL; HIRSCHL (2023). Machine Learning Operations (MLOps): Overview, Definition, and Architecture. IEEE Access 11. arXiv:2205.02302 [portfólio PBL1, 4.2]"
+      ]
+    },
+    {
+      "id": "DD4",
+      "grupo": "dados_documentacao",
+      "nome": "Verificar a qualidade dos dados",
+      "campo": "qualidade_dados",
+      "documental_extensa": false,
+      "descricao": "Os dados passaram por verificação antes do uso: valores ausentes, duplicatas, faixas inválidas e desequilíbrio entre classes.",
+      "condicoes": {
+        "atendida": "A equipe informou que verificações de qualidade foram feitas nos dados.",
+        "pendente": "A equipe declarou que os dados não passaram por verificação de qualidade.",
+        "indeterminada": "As verificações de qualidade não foram informadas e ninguém perguntou ainda."
+      },
+      "pergunta": "Que verificações de qualidade vocês já fizeram nos dados?",
+      "pontuacoes": { "impacto": 3, "necessidade": 3, "dependencia": 2, "esforco": 3 },
+      "orientacao": "Rodar uma verificação mínima — ausentes, duplicatas, faixas inválidas e distribuição das classes — e registrar o que foi encontrado.",
+      "proxima_acao": "Executar a verificação mínima no conjunto atual e anotar os problemas encontrados.",
+      "termos_busca": [
+        "qualidade dos dados",
+        "validação de dados",
+        "teste de dados",
+        "problemas nos dados",
+        "testes e qualidade"
+      ],
+      "referencias": [
+        "MARTÍNEZ-FERNÁNDEZ et al. (2022). Software Engineering for AI-Based Systems: A Survey. ACM TOSEM 31(2). [portfólio PBL1, 4.1]",
+        "PALEYES; URMA; LAWRENCE (2023). Challenges in Deploying Machine Learning: A Survey of Case Studies. ACM Computing Surveys 55(6). arXiv:2011.09926 [portfólio PBL1, 4.3]",
+        "NAHAR et al. (2023). A Meta-Summary of Challenges in Building Products with ML Components. CAIN 2023. arXiv:2304.00078 [portfólio PBL1, 4.4]"
+      ]
+    }
+  ]
+}
