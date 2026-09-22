@@ -1,8 +1,4 @@
-# Servidor MCP: expõe a base e a regra de análise como recursos, ferramentas e prompts.
-#
-# Camada fina. Nenhuma regra de negócio mora aqui — tudo vem de base.py e nucleo.py.
-#
-#     uv run mcp dev servidor.py
+# servidor mcp que implementa as ferramentas e recursos de engenharia de IA. Roda localmente, sem estado, e devolve JSON ou markdown.
 
 from __future__ import annotations
 
@@ -33,7 +29,6 @@ servidor = MCPServer(
 )
 
 
-# ─── Forma das entradas ─────────────────────────────────────────────────────────
 
 # Como preencher cada campo de prática. O servidor classifica por regra a partir
 # disto, então a distinção entre "não faz" e "não perguntei" muda o resultado.
