@@ -19,8 +19,8 @@ a reescrita das 12.
 | 3 — `nucleo.py` | ✅ concluída |
 | 4 — `servidor.py` | ✅ concluída |
 | **Fatia 1** | **✅ o MCP roda, com 11 operações e 4 práticas** |
-| 5 — `indexar.py` e `rag.py` | ⛔ bloqueada: `literatura/` vazia |
-| 6 — Ligar o RAG ao servidor | ⏳ depende da 5 |
+| 5 — `indexar.py` e `rag.py` | ✅ concluída |
+| 6 — Ligar o RAG ao servidor | ⏳ próxima |
 | 7 — As outras 8 fichas | ⏳ |
 | 8 — Fechamento | ⏳ |
 
@@ -35,7 +35,9 @@ praticas.json     4 fichas, 5 ajustes, cobertura "parcial"
 base.py           carrega e valida
 nucleo.py         a regra
 servidor.py       as 11 operações
-literatura/       vazia, com .gitkeep
+indexar.py        literatura/ → indice/
+rag.py            consulta ao índice
+literatura/       16 PDFs e 1 .md
 ```
 
 `mcp 2.2.0` · `chromadb 1.5.9` · `pypdf 6.19.0`.
@@ -204,6 +206,14 @@ caracteres com 150 de sobreposição preferindo fim de frase, grava no ChromaDB 
 `rag.py` conforme §5.2: `buscar(termos_busca, k=2)`, truncando em 400 caracteres e
 descartando o que estiver acima do limiar.
 
+**Feito.** 17 arquivos, 1601 pedaços, cerca de 2 minutos. As 4 fichas trazem trechos do
+próprio assunto. Três decisões saíram daqui e estão em `DECISOES.md`: `termos_busca` em
+inglês (item 9), limiar em `0.45` (item 10) e seção de referências fora do índice (item 11).
+`uv run rag.py` roda a busca de cada ficha — é como se confere e recalibra.
+
+**Pendente de revisão do grupo:** o trecho que volta para DD1 (*Dataset Nutrition Label*,
+p. 13) fala de dados sensíveis de passagem; talvez valha refinar os termos.
+
 **Calibrar o limiar aqui.** Nasce em `0.6` e é chute até ver os PDFs reais. O teste é
 rodar as `termos_busca` das 4 fichas contra o índice e olhar o que volta: se práticas não
 relacionadas puxam o mesmo trecho, está frouxo; se quase tudo volta vazio, está apertado.
@@ -272,13 +282,12 @@ Tamanho: pequeno.
 0 ──▶ 1 ──▶ 2 ──▶ 3 ──▶ 4 ──┐
                              │
                              ├──▶ 7 ──▶ 8
-PDFs ⛔ ──▶ 5 ──▶ 6 ─────────┘
+PDFs ✅ ──▶ 5 ──▶ 6 ─────────┘
         └─ FATIA 2 ─┘   └FATIA 3┘ └F4┘
 ```
 
-A fatia 1 terminou. **A etapa 5 é agora o caminho crítico e está bloqueada:** `literatura/`
-continua vazia. É a de maior risco do projeto, então quanto antes os PDFs chegarem, antes
-se descobre problema de ChromaDB ou de formato de PDF.
+A fatia 1 terminou e a etapa 5 também: o ChromaDB e os PDFs reais funcionaram. **Próxima:
+etapa 6**, ligar o RAG ao servidor.
 
 A etapa 7 não depende do RAG para começar, mas depende dele para escolher `termos_busca`
 com o retorno real à vista — por isso vem depois da 6.
@@ -289,7 +298,8 @@ com o retorno real à vista — por isso vem depois da 6.
 
 | Quando | O quê | Situação |
 |---|---|---|
-| **Agora — destrava a etapa 5** | escolher e colocar os PDFs em `literatura/` | ⛔ pendente |
+| Antes da etapa 5 | escolher e colocar os PDFs em `literatura/` | ✅ feito |
+| Quando der | decidir se `referencias` das fichas passam a refletir `literatura/` (`DECISOES.md`, aberto 1) | ⏳ |
 | Quando der | revisar `orientacao`, `proxima_acao` e referências das 4 fichas já escritas | ⏳ |
 | Quando der | confirmar o `documental_extensa` de RP6 | ⏳ |
 | Depois da etapa 6 | olhar as citações e ajustar `termos_busca` no JSON onde vierem ruins | ⏳ |

@@ -84,11 +84,10 @@
       "orientacao": "Escrever em uma frase o problema que o sistema resolve e quem é atendido por ele, antes de escolher técnica ou conjunto de dados.",
       "proxima_acao": "Escrever a frase do objetivo e validá-la com quem vai usar o sistema.",
       "termos_busca": [
-        "objetivo do sistema",
-        "definição do problema",
-        "requisitos mal definidos",
-        "fase de concepção",
-        "engenharia de requisitos para ML"
+        "system goal",
+        "problem definition",
+        "business objective of the ML system",
+        "requirements engineering for ML"
       ],
       "referencias": [
         "MARTÍNEZ-FERNÁNDEZ et al. (2022). Software Engineering for AI-Based Systems: A Survey. ACM TOSEM 31(2). [portfólio PBL1, 4.1]",
@@ -113,11 +112,9 @@
       "orientacao": "Manter um registro curto por decisão: o que foi decidido, quando, por quê, e qual alternativa foi descartada.",
       "proxima_acao": "Criar o arquivo de decisões e registrar nele a última decisão tomada pela equipe.",
       "termos_busca": [
-        "decisões de projeto",
-        "registro de decisões",
-        "documentação de arquitetura",
-        "boas práticas de projeto",
-        "rastreabilidade"
+        "architecture decision record",
+        "documenting architecture decisions",
+        "decision rationale and alternatives"
       ],
       "referencias": [
         "NAZIR; BUCAIONI; PELLICCIONE (2024). Architecting ML-Enabled Systems: Challenges, Best Practices, and Design Decisions. JSS 207, 111860. [portfólio PBL1, 4.5]",
@@ -142,11 +139,10 @@
       "orientacao": "Registrar a fonte, o período de coleta e as principais características dos dados.",
       "proxima_acao": "Criar o registro de documentação da fonte dos dados.",
       "termos_busca": [
-        "fonte dos dados",
-        "origem dos dados",
-        "coleta de dados",
-        "gestão de dados",
-        "proveniência"
+        "data source",
+        "data provenance",
+        "data collection",
+        "where the data comes from"
       ],
       "referencias": [
         "PALEYES; URMA; LAWRENCE (2023). Challenges in Deploying Machine Learning: A Survey of Case Studies. ACM Computing Surveys 55(6). arXiv:2011.09926 [portfólio PBL1, 4.3]",
@@ -171,11 +167,10 @@
       "orientacao": "Rodar uma verificação mínima — ausentes, duplicatas, faixas inválidas e distribuição das classes — e registrar o que foi encontrado.",
       "proxima_acao": "Executar a verificação mínima no conjunto atual e anotar os problemas encontrados.",
       "termos_busca": [
-        "qualidade dos dados",
-        "validação de dados",
-        "teste de dados",
-        "problemas nos dados",
-        "testes e qualidade"
+        "data quality",
+        "data validation",
+        "data errors and anomalies",
+        "data quality checks"
       ],
       "referencias": [
         "MARTÍNEZ-FERNÁNDEZ et al. (2022). Software Engineering for AI-Based Systems: A Survey. ACM TOSEM 31(2). [portfólio PBL1, 4.1]",
