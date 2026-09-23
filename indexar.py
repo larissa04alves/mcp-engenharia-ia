@@ -1,6 +1,4 @@
-# Lê a literatura, divide em pedaços e grava no índice vetorial (ChromaDB). Roda uma vez, fora do servidor.
-
-from __future__ import annotations
+"""Lê a literatura, divide em pedaços e grava no índice vetorial. Roda uma vez, fora do servidor."""
 
 import logging
 import re
@@ -16,11 +14,11 @@ EXTENSOES = (".pdf", ".md", ".txt")
 
 TAMANHO_PEDACO = 800
 SOBREPOSICAO = 150
-LOTE = 500  # quantos pedaços por chamada ao ChromaDB
+LOTE = 500  # pedaços por chamada ao ChromaDB
 
 logging.getLogger("pypdf").setLevel(logging.ERROR)
 
-# titulo das referências, com ou sem número, com ou sem acento, com ou sem plural, em inglês ou português
+# Título da seção de referências numa linha própria, com ou sem número, em inglês ou português.
 TITULO_REFERENCIAS = re.compile(
     r"^\s*(\d+\.?\s*)?(references|bibliography|referências|referências bibliográficas)\s*$",
     re.IGNORECASE | re.MULTILINE,
@@ -29,13 +27,13 @@ TITULO_REFERENCIAS = re.compile(
 
 def _limpar(texto: str) -> str:
     texto = unicodedata.normalize("NFKC", texto)
-    texto = texto.replace("\u200b", "")  # espaço invisível que alguns PDFs carregam
-    texto = re.sub(r"(\w)-\n(\w)", r"\1\2", texto)
+    texto = texto.replace("​", "")  # espaço de largura zero que alguns PDFs carregam
+    texto = re.sub(r"(\w)-\n(\w)", r"\1\2", texto)  # palavra quebrada por hifenação
     return " ".join(texto.split())
 
 
 def _paginas(arquivo: Path) -> list[tuple[int, str]]:
-    # Devolve (número da página, texto bruto), parando na seção de referências.
+    """Pares (número da página, texto bruto), parando na seção de referências."""
     if arquivo.suffix == ".pdf":
         brutas = [pagina.extract_text() or "" for pagina in PdfReader(arquivo).pages]
     else:
@@ -51,7 +49,7 @@ def _paginas(arquivo: Path) -> list[tuple[int, str]]:
 
 
 def _dividir(texto: str) -> list[str]:
-    #divide o texto em pedaços de tamanho máximo TAMANHO_PEDACO, tentando cortar em pontos finais.
+    """Pedaços de até TAMANHO_PEDACO caracteres, cortando em fim de frase quando dá, com sobreposição."""
     pedacos = []
     inicio = 0
     while inicio < len(texto):
@@ -68,7 +66,6 @@ def _dividir(texto: str) -> list[str]:
 
 
 def indexar() -> None:
-    # indexa todos os arquivos de PASTA_LITERATURA no índice vetorial (ChromaDB).
     arquivos = sorted(a for a in PASTA_LITERATURA.iterdir() if a.suffix.lower() in EXTENSOES)
     if not arquivos:
         raise SystemExit(f"Nenhum arquivo {', '.join(EXTENSOES)} em {PASTA_LITERATURA}/")
@@ -83,7 +80,7 @@ def indexar() -> None:
                 documentos.append(pedaco)
                 metadados.append({"arquivo": arquivo.name, "pagina": numero})
         gerados = len(documentos) - antes
-        aviso = "sem texto extraível (PDF escaneado?)" if gerados == 0 else ""
+        aviso = "  sem texto extraível (PDF escaneado?)" if gerados == 0 else ""
         print(f"{gerados:5d}  {arquivo.name}{aviso}")
 
     print(f"\nGravando {len(documentos)} pedaços em {rag.PASTA_INDICE.name}/ ...")

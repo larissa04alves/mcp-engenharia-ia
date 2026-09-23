@@ -1,9 +1,12 @@
-# Testes da regra de análise.
+"""Testes da regra de análise."""
+
+from datetime import date
 
 import pytest
 
-from base import carregar
+from base import CAMPOS_CONTEXTO, carregar
 from nucleo import (
+    CONTEXTO,
     analisar,
     estado_do_campo,
     identificar_contexto,
@@ -15,11 +18,30 @@ from nucleo import (
 BASE = carregar()
 
 NEGACOES = [
-    "não", "NÃO", "nao", "não temos", "não fazemos", "não fizemos", "não definimos",
-    "não há", "não existe", "não possui", "não foi feito", "não sei",
-    "ainda não", "ainda não fizemos", "por enquanto não", "até agora não fizemos",
-    "no momento não temos", "nunca fizemos isso", "jamais foi registrado",
-    "nenhum", "nenhuma", "nenhumas", "inexistente", "ausente",
+    "não",
+    "NÃO",
+    "nao",
+    "não temos",
+    "não fazemos",
+    "não fizemos",
+    "não definimos",
+    "não há",
+    "não existe",
+    "não possui",
+    "não foi feito",
+    "não sei",
+    "ainda não",
+    "ainda não fizemos",
+    "por enquanto não",
+    "até agora não fizemos",
+    "no momento não temos",
+    "nunca fizemos isso",
+    "jamais foi registrado",
+    "nenhum",
+    "nenhuma",
+    "nenhumas",
+    "inexistente",
+    "ausente",
 ]
 
 VAZIOS = ["", "   ", "-", "--", "n/a", "N/A", "nada"]
@@ -121,6 +143,21 @@ def test_faixas_cobrem_todas_as_pontuacoes_possiveis():
 
 # verifica ajustes e contexto
 
+
+def test_campos_de_contexto_batem_com_a_base():
+    assert tuple(CONTEXTO) == CAMPOS_CONTEXTO
+
+
+def test_contexto_descarta_tipo_errado_sem_quebrar():
+    atributos = identificar_contexto(BASE, {"tamanho_equipe": "três", "dados_sensiveis": "sim", "estagio": "MVP"})
+    assert atributos["atributos"] == {
+        "tipo_problema": None,
+        "tamanho_equipe": None,
+        "estagio": None,
+        "dados_sensiveis": None,
+    }
+
+
 AJUSTES = [
     ("concepcao", {"estagio": "concepcao"}, {"estagio": "desenvolvimento"}),
     ("evolucao", {"estagio": "evolucao"}, {"estagio": "concepcao"}),
@@ -162,6 +199,7 @@ def test_intermediarios_do_calculo_sao_devolvidos():
 
 # verifica a saída do servidor
 
+
 def test_ordem_por_pontuacao_decrescente_com_desempate_por_id():
     plano = priorizar_praticas(BASE, list(BASE.por_id), identificar_contexto(BASE, {}))
     chaves = [(-i["pontuacao"], i["id"]) for i in plano]
@@ -182,12 +220,16 @@ def test_rag_nao_altera_a_pontuacao():
 
 
 def test_registro_traz_as_secoes_e_o_calculo_aberto():
-    from datetime import date
-
     entrada = {"estagio": "concepcao", "tamanho_equipe": 3, "objetivo": "prever evasão", "requisitos": False}
     registro = render_registro(BASE, analisar(BASE, entrada), quando=date(2026, 1, 15))
 
-    for secao in ("## Contexto do projeto", "## Ajustes de contexto", "## Práticas atendidas", "## Plano de ação", "## Lacunas"):
+    for secao in (
+        "## Contexto do projeto",
+        "## Ajustes de contexto",
+        "## Práticas atendidas",
+        "## Plano de ação",
+        "## Lacunas",
+    ):
         assert secao in registro
     assert "15/01/2026" in registro
     assert "concepção" in registro
