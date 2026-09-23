@@ -2,3 +2,8 @@ indice/
 .venv/
 __pycache__/
 *.pyc
+
+# documentos internos
+PLANO.md
+SPEC.md
+DECISOES.md

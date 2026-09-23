@@ -11,7 +11,7 @@ assistente de IA que elas já usam.
 - **Fundamentação por RAG:** cada orientação vem com trecho da literatura, arquivo e página.
   O RAG não altera a pontuação.
 
-Projeto do PBL4 (PUCPR, Grupo 8, tema Engenharia de IA).
+Projeto de Pesquisa Aplicada (PUCPR, Grupo 8, tema Engenharia de IA).
 
 ---
 
@@ -57,7 +57,12 @@ macOS: `~/Library/Application Support/Claude/`; Windows: `%APPDATA%\Claude\`):
   "mcpServers": {
     "engenharia-ia": {
       "command": "/caminho/para/uv",
-      "args": ["--directory", "/caminho/para/mcp-engenharia-ia", "run", "servidor.py"]
+      "args": [
+        "--directory",
+        "/caminho/para/mcp-engenharia-ia",
+        "run",
+        "servidor.py"
+      ]
     }
   }
 }
@@ -93,11 +98,11 @@ blocos — o projeto, os requisitos e os dados — num total de 16 perguntas. Ex
 
 **Como responder.** Com o que a equipe sabe, sem enfeitar:
 
-| Se a equipe… | Responda assim | O servidor entende |
-|---|---|---|
-| já faz ou já tem | descreva em uma frase | prática **atendida** — sai do plano |
+| Se a equipe…       | Responda assim                                    | O servidor entende                    |
+| ------------------ | ------------------------------------------------- | ------------------------------------- |
+| já faz ou já tem   | descreva em uma frase                             | prática **atendida** — sai do plano   |
 | não faz ou não tem | diga claramente: "não temos", "ainda não fizemos" | prática **pendente** — entra no plano |
-| não sabe | "não sei" | pendente |
+| não sabe           | "não sei"                                         | pendente                              |
 
 Quando uma resposta fica ambígua ("não temos processo formal, mas anotamos no Notion"),
 o servidor devolve a pergunta e o assistente a refaz. Isso é esperado: ele prefere
@@ -138,11 +143,11 @@ atualizados.
 Três resources ficam disponíveis no menu de anexos, ou por pedido direto ao assistente
 ("mostra a ficha da DD2"):
 
-| Resource | O que devolve |
-|---|---|
-| `praticas://catalogo` | as 12 práticas, por grupo |
-| `praticas://RP3` | a ficha completa de uma prática: condições, pontuações, orientação, referências |
-| `criterios://priorizacao` | critérios, escala, fórmula, faixas e os 5 ajustes de contexto |
+| Resource                  | O que devolve                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------- |
+| `praticas://catalogo`     | as 12 práticas, por grupo                                                       |
+| `praticas://RP3`          | a ficha completa de uma prática: condições, pontuações, orientação, referências |
+| `criterios://priorizacao` | critérios, escala, fórmula, faixas e os 5 ajustes de contexto                   |
 
 Os prompts `coletar_projeto`, `coletar_requisitos` e `coletar_dados` são os três blocos
 de perguntas separados, para quem quer conduzir um bloco de cada vez.
@@ -193,7 +198,7 @@ Duas coisas travadas de propósito pelos testes:
 
 Se uma citação vier fora de contexto, o conserto é editar `termos_busca` da ficha —
 sem tocar em código. Eles estão em inglês porque a literatura e o modelo de embedding
-também estão (ver `DECISOES.md`, item 9).
+também estão: medido, termos em português voltavam sem trecho ou com trecho genérico.
 
 ### Arquivos
 
@@ -210,10 +215,7 @@ test_*.py        suíte de testes
 roteiros/        entradas e oráculos dos testes ponta a ponta
 ```
 
-| Documento              | O que é                                                      |
-| ---------------------- | ------------------------------------------------------------ |
-| `mcp-engenharia-ia.md` | visão e justificativa do artefato                            |
-| `SPEC.md`              | especificação: o que o servidor faz e sob quais regras       |
-| `PLANO.md`             | ordem de construção e estado de cada etapa                   |
-| `DECISOES.md`          | divergências em relação ao `mcp-engenharia-ia.md`, e por quê |
-| `TESTES.md`            | plano de testes, roteiros e resultado de cada execução       |
+| Documento              | O que é                                                |
+| ---------------------- | ------------------------------------------------------ |
+| `mcp-engenharia-ia.md` | visão e justificativa do artefato                      |
+| `TESTES.md`            | plano de testes, roteiros e resultado de cada execução |
