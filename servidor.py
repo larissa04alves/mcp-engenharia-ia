@@ -37,7 +37,15 @@ servidor = MCPServer(
 
 PREENCHIMENTO = (
     "Passe o texto que a equipe informou; false se ela declarou que não faz ou não tem; "
-    "OMITA o campo se ainda não perguntou — vira lacuna, e o servidor devolve a pergunta. Não chute."
+    "OMITA o campo se ainda não perguntou — vira lacuna, e o servidor devolve a pergunta. "
+    "Se ela disser que existe mas é mínimo ('só o README', 'básico'), pergunte se considera suficiente: "
+    "se não, passe false. Não chute."
+)
+
+ESTAGIOS = (
+    "concepcao (definindo o problema, ainda sem dados ou modelo), "
+    "desenvolvimento (explorando dados ou treinando modelo, ainda não em uso) ou "
+    "evolucao (já em uso, sendo melhorado)"
 )
 
 
@@ -46,7 +54,7 @@ class Projeto(BaseModel):
 
     tipo_problema: str | None = Field(None, description="Classificação, regressão, agrupamento, geração, outro.")
     tamanho_equipe: int | None = Field(None, description="Número de integrantes da equipe.")
-    estagio: str | None = Field(None, description="concepcao, desenvolvimento ou evolucao.")
+    estagio: str | None = Field(None, description=f"Um de: {ESTAGIOS}.")
     dados_sensiveis: bool | None = Field(None, description="O projeto envolve dados pessoais ou sensíveis?")
 
     objetivo: str | bool | None = Field(None, description=f"Objetivo do sistema. {PREENCHIMENTO}")
@@ -233,7 +241,7 @@ def coletar_projeto() -> str:
         "Qual problema o sistema precisa resolver, e para quem? (objetivo)",
         "Que tipo de problema é: classificação, regressão, agrupamento, geração? (tipo_problema)",
         "Quantas pessoas trabalham no projeto? (tamanho_equipe)",
-        "Em que estágio ele está: concepcao, desenvolvimento ou evolucao? (estagio)",
+        f"Em que estágio ele está: {ESTAGIOS}? (estagio)",
     )
 
 

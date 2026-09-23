@@ -22,6 +22,18 @@ def test_pedacos_respeitam_tamanho_e_sobrepoem():
     assert texto.endswith(pedacos[-1])
 
 
+def test_pedacos_nao_cortam_palavra_no_meio():
+    palavras = [f"palavra{n}" for n in range(400)]
+    texto = " ".join(palavras)  # sem ponto final: força o corte por espaço
+    vocabulario = set(palavras)
+
+    pedacos = _dividir(texto)
+
+    assert len(pedacos) > 1
+    for pedaco in pedacos:
+        assert set(pedaco.split(" ")) <= vocabulario, pedaco[:40]
+
+
 def test_titulo_de_referencias_em_linha_propria():
     for titulo in ("References", "REFERENCES", "7. References", "Bibliography", "Referências Bibliográficas"):
         assert TITULO_REFERENCIAS.search(f"corpo\n{titulo}\n[1] Alguém"), titulo

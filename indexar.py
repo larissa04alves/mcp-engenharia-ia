@@ -49,19 +49,22 @@ def _paginas(arquivo: Path) -> list[tuple[int, str]]:
 
 
 def _dividir(texto: str) -> list[str]:
-    """Pedaços de até TAMANHO_PEDACO caracteres, cortando em fim de frase quando dá, com sobreposição."""
+    """Pedaços de até TAMANHO_PEDACO caracteres, com sobreposição. Corta em fim de frase, senão em espaço."""
     pedacos = []
     inicio = 0
     while inicio < len(texto):
         fim = min(inicio + TAMANHO_PEDACO, len(texto))
         if fim < len(texto):
-            ponto = texto.rfind(". ", inicio + TAMANHO_PEDACO // 2, fim)
-            if ponto != -1:
-                fim = ponto + 1
+            meio = inicio + TAMANHO_PEDACO // 2
+            ponto = texto.rfind(". ", meio, fim)
+            espaco = texto.rfind(" ", meio, fim)
+            fim = ponto + 1 if ponto != -1 else espaco if espaco != -1 else fim
         pedacos.append(texto[inicio:fim].strip())
         if fim >= len(texto):
             break
-        inicio = max(fim - SOBREPOSICAO, inicio + 1)
+        proximo = max(fim - SOBREPOSICAO, inicio + 1)
+        espaco = texto.find(" ", proximo, fim)  # o pedaço seguinte começa em palavra inteira
+        inicio = espaco + 1 if espaco != -1 else proximo
     return [p for p in pedacos if p]
 
 
