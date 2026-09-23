@@ -22,7 +22,8 @@ a reescrita das 12.
 | 5 — `indexar.py` e `rag.py` | ✅ concluída |
 | 6 — Ligar o RAG ao servidor | ✅ concluída |
 | **Fatia 2** | **✅ o plano sai com citação, fonte e página** |
-| 7 — As outras 8 fichas | ⏳ |
+| 7 — As outras 8 fichas | ✅ concluída |
+| **Fatia 3** | **✅ as 12 práticas, validação completa ligada** |
 | 8 — Fechamento | ⏳ |
 
 Fatia 1 integrada ao `master` pelo PR #1. Etapas seguintes em branch novo a partir dele.
@@ -32,7 +33,7 @@ pyproject.toml    uv, requires-python >=3.12
 uv.lock           versões travadas
 .venv/            365 MB, Python 3.12.14
 .gitignore        indice/ .venv/ __pycache__/ *.pyc
-praticas.json     4 fichas, 5 ajustes, cobertura "parcial"
+praticas.json     12 fichas, 5 ajustes, cobertura "completa"
 base.py           carrega e valida
 nucleo.py         a regra
 servidor.py       as 11 operações
@@ -249,7 +250,23 @@ Tamanho: pequeno. Risco: baixo.
 
 # Fatia 3 — Conteúdo completo
 
-## Etapa 7 — As outras 8 fichas
+## Etapa 7 — As outras 8 fichas ✅
+
+**Feito.** `cobertura: "completa"` liga a validação estrita, e `uv run base.py` passa com as
+12. As pontuações e níveis batem linha a linha com a tabela da §3.3 da SPEC; as 4 fichas da
+fatia 1 não foram alteradas, só reordenadas (o arquivo agora vai de RP1 a DD6).
+`documental_extensa` marcado em DD2, DD3 e DD6.
+
+Os `termos_busca` foram escolhidos olhando o retorno do índice: as 12 fichas trazem 2
+trechos cada, entre 0,25 e 0,43. Uma análise completa pelo cliente MCP distribuiu as 12
+em 4 atendidas, 6 pendentes e 2 lacunas, e as 6 pontuações conferem com a conta à mão.
+
+As `referencias` das 8 novas citam só artigos de `literatura/` (`DECISOES.md`, aberto 1).
+
+**Pendente de revisão do grupo:** tudo que é texto das 8 novas — `descricao`, `pergunta`,
+`orientacao`, `proxima_acao` e `referencias`. RP1 e RP2 puxam o mesmo trecho do Romao
+(p. 2); DD2 e DD3 puxam ambas do *Datasheets*, mas de páginas diferentes.
+
 
 RP2, RP3, RP4, RP5, DD2, DD3, DD5, DD6 — agora contra um esquema já provado por código
 que roda, e com o retorno real do RAG à vista para escolher `termos_busca` que funcionem.
@@ -297,8 +314,7 @@ PDFs ✅ ──▶ 5 ──▶ 6 ─────────┘
         └─ FATIA 2 ─┘   └FATIA 3┘ └F4┘
 ```
 
-As fatias 1 e 2 terminaram. **Próxima: etapa 7**, as outras 8 fichas, já com o retorno
-real do RAG à vista para escolher `termos_busca` (em inglês, `DECISOES.md` item 9).
+As fatias 1, 2 e 3 terminaram. **Próxima: etapa 8**, o fechamento.
 
 A etapa 7 não depende do RAG para começar, mas depende dele para escolher `termos_busca`
 com o retorno real à vista — por isso vem depois da 6.

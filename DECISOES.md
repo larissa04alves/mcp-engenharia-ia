@@ -160,6 +160,12 @@ A literatura foi escolhida: 16 PDFs e um `.md`. Mas as 4 fichas citam Martínez-
 RAG vêm de artigos que as fichas não listam em `referencias`. O grupo decide se as
 `referencias` passam a refletir a pasta ou se os artigos citados entram nela.
 
+As 8 fichas da etapa 7 já seguem a primeira opção: citam só artigos que estão em
+`literatura/`, com o marcador `[literatura/]` — os dados bibliográficos saíram dos
+próprios PDFs. As 4 fichas da fatia 1 continuam com o marcador `[portfólio PBL1, 4.x]`
+até o grupo decidir. Se a decisão for manter a regra "só portfólio", as 8 novas precisam
+ser revistas.
+
 ### 2. `documental_extensa` em RP6, DD2, DD3 e DD6
 
 O ajuste 3 da Tabela 4 diz "−1 em esforço nas práticas cujo registro indique produção
@@ -175,12 +181,12 @@ está *atendida*, portanto fora da priorização. O ajuste em DD5 nunca chega a 
 Não é erro de implementação, é uma interação entre a Tabela 4 e a regra de seleção.
 O grupo decide se era essa a intenção.
 
-### 4. RP5 sem artigo dedicado
+### 4. RP5 com fundamentação fraca
 
-Nenhum arquivo da literatura trata de papéis e responsabilidades na equipe. Quando a
-ficha de RP5 for escrita (etapa 7), é provável que saia sem fundamentação — o que é
-comportamento previsto, não erro. Se o grupo quiser fechar a lacuna, o candidato é
-Nahar et al. (2022), *Collaboration Challenges in Building ML-Enabled Systems*.
+Nenhum arquivo da literatura é dedicado a papéis e responsabilidades na equipe. A busca
+de RP5 encontra trechos do Kreuzberger (MLOps, p. 11, sobre os papéis de um time de ML)
+e do Romao — relacionados, mas de passagem. Se o grupo quiser uma fonte dedicada, o
+candidato é Nahar et al. (2022), *Collaboration Challenges in Building ML-Enabled Systems*.
 
 ### 5. Prazo e rubrica de avaliação
 
