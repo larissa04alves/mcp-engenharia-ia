@@ -9,12 +9,22 @@ from mcp.server.mcpserver import MCPServer
 from pydantic import BaseModel, Field
 
 import nucleo
+import rag
 from base import BaseInvalida, carregar
 
 try:
     BASE = carregar()
 except BaseInvalida as erro:
     print(erro, file=sys.stderr)
+    raise SystemExit(1)
+
+# A fundamentação é exigência do professor: sem índice, o servidor não sobe (SPEC §8.2).
+if not rag.indice_disponivel():
+    print(
+        "Índice da literatura não encontrado.\n"
+        "Coloque os PDFs em literatura/ e rode: uv run indexar.py",
+        file=sys.stderr,
+    )
     raise SystemExit(1)
 
 
@@ -30,8 +40,7 @@ servidor = MCPServer(
 
 
 
-# Como preencher cada campo de prática. O servidor classifica por regra a partir
-# disto, então a distinção entre "não faz" e "não perguntei" muda o resultado.
+# Como preencher cada campo de prática.
 PREENCHIMENTO = (
     "Texto com o que a equipe informou. "
     "Use false se a equipe declarou que não faz ou não tem. "
@@ -40,7 +49,7 @@ PREENCHIMENTO = (
 
 
 class Projeto(BaseModel):
-    # Os 16 campos de entrada. Nenhum é obrigatório: informação ausente vira lacuna, não erro.
+    # Os 16 campos de entrada. Nenhum é obrigatório: informação ausente vira lacuna
 
     tipo_problema: str | None = Field(None, description="Classificação, regressão, agrupamento, geração, outro.")
     tamanho_equipe: int | None = Field(None, description="Número de integrantes da equipe.")
@@ -62,17 +71,19 @@ class Projeto(BaseModel):
     organizacao_infos: str | bool | None = Field(None, description=f"Como as informações dos dados estão organizadas. {PREENCHIMENTO}")
 
     def entrada(self) -> dict:
-        # Só o que foi informado: um campo omitido precisa continuar ausente para virar lacuna.
+        # devolve apenas o que foi preenchido
         return self.model_dump(exclude_none=True)
+
+
+def _fundamentar(pratica: dict) -> list[dict]:
+    return [{"texto": t.texto, "fonte": t.fonte()} for t in rag.buscar(pratica["termos_busca"])]
 
 
 def _json(dados) -> str:
     return json.dumps(dados, ensure_ascii=False, indent=2)
 
 
-# ─── Recursos ───────────────────────────────────────────────────────────────────
-
-
+# resources que devolvem informações da base de práticas
 @servidor.resource(
     "praticas://catalogo",
     name="Catálogo de práticas",
@@ -120,9 +131,7 @@ def criterios() -> str:
     )
 
 
-# ─── Ferramentas ────────────────────────────────────────────────────────────────
-
-
+# ferramentas que implementam o fluxo de análise de práticas.
 @servidor.tool(description="Normaliza o contexto do projeto e diz quais ajustes de pontuação se aplicam.")
 def identificar_contexto(projeto: Projeto) -> dict:
     contexto = nucleo.identificar_contexto(BASE, projeto.entrada())
@@ -166,7 +175,7 @@ def selecionar_praticas(projeto: Projeto) -> dict:
 )
 def priorizar_praticas(ids: list[str], projeto: Projeto) -> dict:
     contexto = nucleo.identificar_contexto(BASE, projeto.entrada())
-    plano = nucleo.priorizar_praticas(BASE, ids, contexto)
+    plano = nucleo.priorizar_praticas(BASE, ids, contexto, _fundamentar)
 
     desconhecidos = [i for i in ids if i not in BASE.por_id]
     return {
@@ -183,7 +192,7 @@ def priorizar_praticas(ids: list[str], projeto: Projeto) -> dict:
     )
 )
 def gerar_plano_acao(projeto: Projeto) -> dict:
-    analise = nucleo.analisar(BASE, projeto.entrada())
+    analise = nucleo.analisar(BASE, projeto.entrada(), _fundamentar)
     return {
         "contexto": analise["contexto"]["atributos"],
         "ajustes_aplicados": [{"id": a["id"], "descricao": a["descricao"]} for a in analise["contexto"]["ajustes"]],
@@ -198,7 +207,7 @@ def gerar_plano_acao(projeto: Projeto) -> dict:
     }
 
 
-# ─── Prompts ────────────────────────────────────────────────────────────────────
+# prompts que guiam a coleta de informações
 
 _COMO_PREENCHER = (
     "Ao chamar as ferramentas: passe o texto da equipe no campo correspondente; "

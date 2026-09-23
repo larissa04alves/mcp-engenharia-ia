@@ -21,9 +21,9 @@ O ChromaDB traz a própria função de embedding (ONNX, ~100 MB, offline).
 justifique o custo aqui. Menos dependência e menos código: não escrevemos nada de
 embedding, o ChromaDB faz.
 
-**Efeito colateral aceito:** o modelo padrão é treinado em inglês e os fichamentos estão
-em português. Como a consulta e o texto estão os dois em português, o ranking relativo
-continua funcionando — só não é ótimo. A alternativa multilíngue exige o PyTorch.
+**Efeito colateral aceito:** o modelo padrão (`all-MiniLM-L6-v2`) é treinado em inglês.
+A literatura que o grupo escolheu também está em inglês, então o custo recai só sobre a
+consulta — resolvido escrevendo `termos_busca` em inglês (item 9).
 
 ### 2. `literatura/` recebe PDF, não markdown
 
@@ -100,6 +100,39 @@ seria começar o projeto em uma versão já substituída para preservar uma pala
 A decisão do documento — usar o SDK oficial e seus decoradores em vez de implementar
 JSON-RPC na mão — continua valendo integralmente.
 
+### 9. `termos_busca` em inglês
+
+**Documento:** não trata do idioma da consulta.
+**Implementação:** os `termos_busca` de cada ficha são escritos em inglês; o resto da
+ficha continua em português.
+
+Os artigos em `literatura/` estão em inglês e o modelo de embedding só entende bem inglês.
+Medido na etapa 5 com as 4 fichas: com os termos em português, 3 voltaram sem nenhum
+trecho e a quarta trouxe um trecho genérico (distância 0,48); em inglês, as 4 trazem
+trechos do assunto, entre 0,25 e 0,39.
+
+### 10. Limiar de relevância em `0.45`
+
+**SPEC (§5.2):** nasce em `0.6`, a calibrar.
+**Implementação:** `LIMIAR = 0.45` em `rag.py`.
+
+Medido com os 17 arquivos da literatura: trechos do assunto ficam entre 0,25 e 0,44;
+consultas sem relação nenhuma (controle) ficam entre 0,78 e 0,86; o trecho genérico e
+fora de contexto que apareceu ficou em 0,48. `0.6` deixaria esse passar.
+
+Distância baixa não garante trecho bom — a revisão humana das citações continua
+necessária (ver `PLANO.md`, "O que vocês precisam fazer").
+
+### 11. Seção de referências fora do índice
+
+**SPEC (§5.1):** indexa o texto de todas as páginas.
+**Implementação:** `indexar.py` para de ler um arquivo ao encontrar o título da seção de
+referências ("References", "Bibliography", "Referências") numa linha própria.
+
+No teste com o índice completo, a busca por RP2 devolveu a página 39 do Kalinowski — a
+lista bibliográfica. Citar uma lista de referências como fundamentação não faz sentido.
+Custo aceito: apêndices que vêm depois das referências também ficam de fora.
+
 ---
 
 ## Confirmações (não são divergências)
@@ -120,10 +153,12 @@ Ficam registradas porque foram examinadas e mantidas de propósito.
 
 ## Itens em aberto
 
-### 1. Quais PDFs entram em `literatura/`
+### 1. Referências das fichas não batem com `literatura/`
 
-Decisão do grupo. A pasta nasce vazia e nada é adicionado sem essa escolha.
-É pré-requisito bloqueante da construção (`PLANO.md`).
+A literatura foi escolhida: 16 PDFs e um `.md`. Mas as 4 fichas citam Martínez-Fernández
+(2022), Nahar (2023), Nazir (2024) e Wu (2024), que não estão na pasta, e as citações do
+RAG vêm de artigos que as fichas não listam em `referencias`. O grupo decide se as
+`referencias` passam a refletir a pasta ou se os artigos citados entram nela.
 
 ### 2. `documental_extensa` em RP6, DD2, DD3 e DD6
 
@@ -140,10 +175,12 @@ está *atendida*, portanto fora da priorização. O ajuste em DD5 nunca chega a 
 Não é erro de implementação, é uma interação entre a Tabela 4 e a regra de seleção.
 O grupo decide se era essa a intenção.
 
-### 4. Limiar de relevância do RAG
+### 4. RP5 sem artigo dedicado
 
-Nasce em `0.6` (distância cosseno) e é chute até ver os PDFs reais. Calibrado na etapa 5
-do `PLANO.md`, rodando as `termos_busca` das 12 práticas contra o índice.
+Nenhum arquivo da literatura trata de papéis e responsabilidades na equipe. Quando a
+ficha de RP5 for escrita (etapa 7), é provável que saia sem fundamentação — o que é
+comportamento previsto, não erro. Se o grupo quiser fechar a lacuna, o candidato é
+Nahar et al. (2022), *Collaboration Challenges in Building ML-Enabled Systems*.
 
 ### 5. Prazo e rubrica de avaliação
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import unicodedata
+from collections.abc import Callable
 from datetime import date
 
 from base import CRITERIOS, Base, carregar
@@ -76,6 +77,7 @@ def identificar_contexto(base: Base, entrada: dict) -> dict:
 
 
 def _ajuste_dispara(ajuste: dict, valores: dict) -> bool:
+    # Verifica se o ajuste se aplica a este contexto. Se sim, devolve True; senão, False.
     quando = ajuste["quando"]
     valor = valores.get(quando["campo"])
 
@@ -91,6 +93,7 @@ def _ajuste_dispara(ajuste: dict, valores: dict) -> bool:
 
 
 def _ajuste_atinge(ajuste: dict, pratica: dict) -> bool:
+    # Verifica se o ajuste se aplica a esta prática. Se sim, devolve True; senão, False.
     alvo = ajuste["alvo"]
     if "grupo" in alvo:
         return pratica["grupo"] == alvo["grupo"]
@@ -122,9 +125,16 @@ def selecionar_praticas(base: Base, entrada: dict) -> dict:
     }
 
 
-def priorizar_praticas(base: Base, ids: list[str], contexto: dict) -> list[dict]:
+# Recebe a ficha e devolve trechos {"texto", "fonte"}. 
+Fundamentar = Callable[[dict], list[dict]]
+
+
+def priorizar_praticas(base: Base, ids: list[str], contexto: dict, fundamentar: Fundamentar | None = None) -> list[dict]:
     # Aplica os ajustes, calcula P = I + N + D + (4 - E) e classifica. Ordena por P
     priorizadas = [_priorizar_uma(base, base.por_id[i], contexto["ajustes"]) for i in ids if i in base.por_id]
+    if fundamentar:
+        for item in priorizadas:
+            item["fundamentacao"] = fundamentar(base.por_id[item["id"]])
     return sorted(priorizadas, key=lambda item: (-item["pontuacao"], item["id"]))
 
 
@@ -182,11 +192,11 @@ def _frase_criterios(base: Base, final: dict) -> str:
 
 
 
-def analisar(base: Base, entrada: dict) -> dict:
+def analisar(base: Base, entrada: dict, fundamentar: Fundamentar | None = None) -> dict:
     # analisa o contexto, classifica as práticas e devolve o plano de ação priorizado
     contexto = identificar_contexto(base, entrada)
     selecao = selecionar_praticas(base, entrada)
-    plano = priorizar_praticas(base, [p["id"] for p in selecao["pendentes"]], contexto)
+    plano = priorizar_praticas(base, [p["id"] for p in selecao["pendentes"]], contexto, fundamentar)
     return {"contexto": contexto, "selecao": selecao, "plano": plano}
 
 
@@ -269,7 +279,7 @@ def _bloco_pratica(posicao: int, item: dict) -> list[str]:
         linhas.append(f"**Ajuste:** {ajuste['descricao']} — {criterio} {ajuste['de']} → {ajuste['para']}")
 
     for trecho in item.get("fundamentacao", []):
-        linhas += ["", f"** Fundamentação:** “{trecho['texto']}”", f"**Fonte:** {trecho['fonte']}"]
+        linhas += ["", f"**Fundamentação:** “{trecho['texto']}”", f"   Fonte: {trecho['fonte']}"]
 
     linhas += ["", f"**Referências:** {'; '.join(item['referencias'])}", ""]
     return linhas

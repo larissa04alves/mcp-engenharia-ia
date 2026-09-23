@@ -19,13 +19,13 @@ a reescrita das 12.
 | 3 — `nucleo.py` | ✅ concluída |
 | 4 — `servidor.py` | ✅ concluída |
 | **Fatia 1** | **✅ o MCP roda, com 11 operações e 4 práticas** |
-| 5 — `indexar.py` e `rag.py` | ⛔ bloqueada: `literatura/` vazia |
-| 6 — Ligar o RAG ao servidor | ⏳ depende da 5 |
+| 5 — `indexar.py` e `rag.py` | ✅ concluída |
+| 6 — Ligar o RAG ao servidor | ✅ concluída |
+| **Fatia 2** | **✅ o plano sai com citação, fonte e página** |
 | 7 — As outras 8 fichas | ⏳ |
 | 8 — Fechamento | ⏳ |
 
-Branch `feat/criar-estrutura-inicial`. Etapas 0 a 2 commitadas e publicadas;
-`nucleo.py` e `servidor.py` ainda não commitados.
+Fatia 1 integrada ao `master` pelo PR #1. Etapas seguintes em branch novo a partir dele.
 
 ```
 pyproject.toml    uv, requires-python >=3.12
@@ -36,7 +36,9 @@ praticas.json     4 fichas, 5 ajustes, cobertura "parcial"
 base.py           carrega e valida
 nucleo.py         a regra
 servidor.py       as 11 operações
-literatura/       vazia, com .gitkeep
+indexar.py        literatura/ → indice/
+rag.py            consulta ao índice
+literatura/       16 PDFs e 1 .md
 ```
 
 `mcp 2.2.0` · `chromadb 1.5.9` · `pypdf 6.19.0`.
@@ -205,6 +207,14 @@ caracteres com 150 de sobreposição preferindo fim de frase, grava no ChromaDB 
 `rag.py` conforme §5.2: `buscar(termos_busca, k=2)`, truncando em 400 caracteres e
 descartando o que estiver acima do limiar.
 
+**Feito.** 17 arquivos, 1601 pedaços, cerca de 2 minutos. As 4 fichas trazem trechos do
+próprio assunto. Três decisões saíram daqui e estão em `DECISOES.md`: `termos_busca` em
+inglês (item 9), limiar em `0.45` (item 10) e seção de referências fora do índice (item 11).
+`uv run rag.py` roda a busca de cada ficha — é como se confere e recalibra.
+
+**Pendente de revisão do grupo:** o trecho que volta para DD1 (*Dataset Nutrition Label*,
+p. 13) fala de dados sensíveis de passagem; talvez valha refinar os termos.
+
 **Calibrar o limiar aqui.** Nasce em `0.6` e é chute até ver os PDFs reais. O teste é
 rodar as `termos_busca` das 4 fichas contra o índice e olhar o que volta: se práticas não
 relacionadas puxam o mesmo trecho, está frouxo; se quase tudo volta vazio, está apertado.
@@ -215,7 +225,17 @@ por DD1 devolve trecho sobre dados — não sobre requisitos.
 Tamanho: médio. Risco: **o mais alto do projeto** — primeira vez com ChromaDB e o formato
 real dos PDFs é desconhecido. A primeira execução baixa o modelo de embedding (~100 MB).
 
-## Etapa 6 — Ligar o RAG ao servidor
+## Etapa 6 — Ligar o RAG ao servidor ✅
+
+**Feito.** Por um cliente MCP real, via stdio: `priorizar_praticas` e `gerar_plano_acao`
+devolvem até 2 trechos por prática pendente, e o registro em markdown sai no formato da
+§5.3 (`📚 Fundamentação` + `Fonte: arquivo.pdf, p. N`). Com `indice/` removido, o servidor
+sai com código 1 e a mensagem da §8.2, sem stack trace.
+
+O `nucleo.py` recebe a busca como função opcional (`fundamentar`), chamada depois de `P` e
+nível calculados. A regra continua rodando sem índice — `uv run nucleo.py` segue funcionando
+— e o RAG não tem como alterar a pontuação.
+
 
 Injetar a fundamentação na saída das práticas pendentes, no formato da §5.3. Ligar a
 checagem de índice na subida (§8.2), com a mensagem que diz o que fazer.
@@ -273,13 +293,12 @@ Tamanho: pequeno.
 0 ──▶ 1 ──▶ 2 ──▶ 3 ──▶ 4 ──┐
                              │
                              ├──▶ 7 ──▶ 8
-PDFs ⛔ ──▶ 5 ──▶ 6 ─────────┘
+PDFs ✅ ──▶ 5 ──▶ 6 ─────────┘
         └─ FATIA 2 ─┘   └FATIA 3┘ └F4┘
 ```
 
-A fatia 1 terminou. **A etapa 5 é agora o caminho crítico e está bloqueada:** `literatura/`
-continua vazia. É a de maior risco do projeto, então quanto antes os PDFs chegarem, antes
-se descobre problema de ChromaDB ou de formato de PDF.
+As fatias 1 e 2 terminaram. **Próxima: etapa 7**, as outras 8 fichas, já com o retorno
+real do RAG à vista para escolher `termos_busca` (em inglês, `DECISOES.md` item 9).
 
 A etapa 7 não depende do RAG para começar, mas depende dele para escolher `termos_busca`
 com o retorno real à vista — por isso vem depois da 6.
@@ -290,7 +309,8 @@ com o retorno real à vista — por isso vem depois da 6.
 
 | Quando | O quê | Situação |
 |---|---|---|
-| **Agora — destrava a etapa 5** | escolher e colocar os PDFs em `literatura/` | ⛔ pendente |
+| Antes da etapa 5 | escolher e colocar os PDFs em `literatura/` | ✅ feito |
+| Quando der | decidir se `referencias` das fichas passam a refletir `literatura/` (`DECISOES.md`, aberto 1) | ⏳ |
 | Quando der | revisar `orientacao`, `proxima_acao` e referências das 4 fichas já escritas | ⏳ |
 | Quando der | confirmar o `documental_extensa` de RP6 | ⏳ |
 | Depois da etapa 6 | olhar as citações e ajustar `termos_busca` no JSON onde vierem ruins | ⏳ |
