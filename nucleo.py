@@ -76,6 +76,7 @@ def identificar_contexto(base: Base, entrada: dict) -> dict:
 
 
 def _ajuste_dispara(ajuste: dict, valores: dict) -> bool:
+    # Verifica se o ajuste se aplica a este contexto. Se sim, devolve True; senão, False.
     quando = ajuste["quando"]
     valor = valores.get(quando["campo"])
 
@@ -91,6 +92,7 @@ def _ajuste_dispara(ajuste: dict, valores: dict) -> bool:
 
 
 def _ajuste_atinge(ajuste: dict, pratica: dict) -> bool:
+    # Verifica se o ajuste se aplica a esta prática. Se sim, devolve True; senão, False.
     alvo = ajuste["alvo"]
     if "grupo" in alvo:
         return pratica["grupo"] == alvo["grupo"]

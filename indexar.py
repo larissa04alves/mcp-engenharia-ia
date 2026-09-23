@@ -1,4 +1,4 @@
-# Lê a literatura, pica em pedaços e grava no índice vetorial (ChromaDB). Roda uma vez, fora do servidor.
+# Lê a literatura, divide em pedaços e grava no índice vetorial (ChromaDB). Roda uma vez, fora do servidor.
 
 from __future__ import annotations
 
@@ -18,11 +18,9 @@ TAMANHO_PEDACO = 800
 SOBREPOSICAO = 150
 LOTE = 500  # quantos pedaços por chamada ao ChromaDB
 
-# PDFs reais vêm com fonte e dicionário malformados; o pypdf avisa e extrai mesmo assim.
 logging.getLogger("pypdf").setLevel(logging.ERROR)
 
-# Título da seção de referências numa linha própria, com ou sem numeração ("7 REFERENCES").
-# Dali em diante é lista bibliográfica: citá-la como fundamentação não faz sentido.
+# titulo das referências, com ou sem número, com ou sem acento, com ou sem plural, em inglês ou português
 TITULO_REFERENCIAS = re.compile(
     r"^\s*(\d+\.?\s*)?(references|bibliography|referências|referências bibliográficas)\s*$",
     re.IGNORECASE | re.MULTILINE,
@@ -30,7 +28,6 @@ TITULO_REFERENCIAS = re.compile(
 
 
 def _limpar(texto: str) -> str:
-    # NFKC desfaz ligaduras ("ﬁ" → "fi"); o hífen de quebra de linha junta a palavra de volta.
     texto = unicodedata.normalize("NFKC", texto)
     texto = re.sub(r"(\w)-\n(\w)", r"\1\2", texto)
     return " ".join(texto.split())
@@ -52,8 +49,8 @@ def _paginas(arquivo: Path) -> list[tuple[int, str]]:
     return paginas
 
 
-def _picar(texto: str) -> list[str]:
-    # Janelas de ~800 caracteres com 150 de sobreposição, cortando em fim de frase quando houver.
+def _dividir(texto: str) -> list[str]:
+    #divide o texto em pedaços de tamanho máximo TAMANHO_PEDACO, tentando cortar em pontos finais.
     pedacos = []
     inicio = 0
     while inicio < len(texto):
@@ -70,6 +67,7 @@ def _picar(texto: str) -> list[str]:
 
 
 def indexar() -> None:
+    # indexa todos os arquivos de PASTA_LITERATURA no índice vetorial (ChromaDB).
     arquivos = sorted(a for a in PASTA_LITERATURA.iterdir() if a.suffix.lower() in EXTENSOES)
     if not arquivos:
         raise SystemExit(f"Nenhum arquivo {', '.join(EXTENSOES)} em {PASTA_LITERATURA}/")
@@ -80,11 +78,11 @@ def indexar() -> None:
     for arquivo in arquivos:
         antes = len(documentos)
         for numero, texto in _paginas(arquivo):
-            for pedaco in _picar(_limpar(texto)):
+            for pedaco in _dividir(_limpar(texto)):
                 documentos.append(pedaco)
                 metadados.append({"arquivo": arquivo.name, "pagina": numero})
         gerados = len(documentos) - antes
-        aviso = "   ⚠️ sem texto extraível (PDF escaneado?)" if gerados == 0 else ""
+        aviso = "sem texto extraível (PDF escaneado?)" if gerados == 0 else ""
         print(f"{gerados:5d}  {arquivo.name}{aviso}")
 
     print(f"\nGravando {len(documentos)} pedaços em {rag.PASTA_INDICE.name}/ ...")

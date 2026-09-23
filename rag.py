@@ -1,4 +1,4 @@
-# Consulta o índice da literatura. Fundamenta a orientação das práticas; nunca altera a pontuação.
+# Consulta o índice da literatura. Fundamenta a orientação das práticas
 
 from __future__ import annotations
 
@@ -12,8 +12,6 @@ from chromadb.config import Settings
 PASTA_INDICE = Path(__file__).parent / "indice"
 COLECAO = "literatura"
 
-# Distância cosseno máxima para um trecho contar como fundamentação (0 = idêntico).
-# Calibrado com os PDFs reais: ver DECISOES.md.
 LIMIAR = 0.45
 MAX_TRECHOS = 2
 MAX_CARACTERES = 400
@@ -62,7 +60,7 @@ def _truncar(texto: str) -> str:
 
 
 def buscar(termos_busca: list[str], k: int = MAX_TRECHOS) -> list[Trecho]:
-    # Até k trechos abaixo do limiar. Lista vazia é resposta válida: sem citação é melhor que citação fora de contexto.
+    # Até k trechos abaixo do limiar. Lista vazia é resposta válida
     colecao = _cliente().get_collection(COLECAO)
     resultado = colecao.query(query_texts=[" ".join(termos_busca)], n_results=k)
     return [
@@ -75,7 +73,7 @@ def buscar(termos_busca: list[str], k: int = MAX_TRECHOS) -> list[Trecho]:
 
 
 if __name__ == "__main__":
-    # Roda a busca de cada prática da base e mostra o que volta — é como se calibra o limiar.
+    # Roda a busca de cada prática da base e mostra o que volta
     from base import carregar
 
     for pratica in carregar().praticas:
