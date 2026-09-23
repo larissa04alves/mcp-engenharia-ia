@@ -86,17 +86,34 @@ Os 12 campos de prática aceitam `str | bool | None`:
 
 | Valor recebido | Significa | Estado da prática |
 |---|---|---|
-| string não vazia | a equipe informou algo | **atendida** |
-| `false`, string vazia, ou uma das negações reconhecidas | a equipe declarou que não faz | **pendente** |
-| chave ausente ou `null` | ninguém perguntou ainda | **indeterminada** |
+| `true`, ou texto que não nega | a equipe informou algo | **atendida** |
+| `false`, texto vazio, ou uma negação limpa | a equipe declarou que não faz | **pendente** |
+| chave ausente, `null`, ou texto que nega e emenda conteúdo | não dá para saber | **indeterminada** |
 
-Negações reconhecidas (comparação sem acento e sem diferenciar maiúsculas):
-`nao`, `não`, `nenhum`, `nenhuma`, `não temos`, `não fazemos`, `não sei`, `n/a`, `-`.
+Isto existe porque quem preenche os campos é um modelo de linguagem, e ele tende a
+escrever "não temos" em vez de passar `false`. Uma negação lida como conteúdo faz a
+prática virar *atendida* e sumir do plano — o erro mais grave que o servidor pode cometer.
 
-Essa lista existe porque quem preenche os campos é um modelo de linguagem, e ele tende
-a escrever "não temos" em vez de passar `false`. Sem ela, uma negação em texto livre
-seria lida como conteúdo e a prática viraria *atendida* — o erro mais grave que
-o servidor poderia cometer.
+**Uma negação é reconhecida pela forma, não por lista fechada.** A comparação é feita sem
+acento e sem diferenciar maiúsculas, e o texto é uma negação limpa quando:
+
+1. começa com marca de negação — `nao`, `nenhum(a/s)`, `nunca`, `jamais`, `inexistente`,
+   `ausente` — opcionalmente precedida de `ainda`, `por enquanto`, `ate agora`,
+   `ate o momento`, `no momento`, `atualmente` ou `hoje`;
+2. tem no máximo **6 palavras**;
+3. não contém adversativa — `mas`, `porem`, `contudo`, `entretanto`, `todavia`,
+   `apesar`, `embora`, `so que`.
+
+Também contam como vazio, e portanto pendente: `""`, `-`, `--`, `n/a`, `na`, `nada`.
+
+**Quando o texto abre negando mas continua falando** — "não temos processo formal, mas
+registramos tudo no Notion" — o servidor devolve **indeterminada** e faz a pergunta de
+novo. Chutar qualquer um dos dois lados seria pior do que assumir que não deu para saber:
+é exatamente para isso que o terceiro estado existe.
+
+> Uma lista fechada foi a primeira implementação e se mostrou insuficiente: `"não temos"`
+> era reconhecido e `"não fizemos"` não, então a mesma resposta em outro tempo verbal
+> mudava o resultado da análise. Oito de treze formulações realistas escapavam.
 
 ---
 

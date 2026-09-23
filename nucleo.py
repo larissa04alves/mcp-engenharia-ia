@@ -2,14 +2,23 @@
 
 from __future__ import annotations
 
+import re
 import unicodedata
 from collections.abc import Callable
 from datetime import date
 
 from base import CRITERIOS, Base, carregar
 
-NEGACOES = {"", "-", "n/a", "na", "nao", "nenhum", "nenhuma", "nao temos", "nao fazemos", "nao sei", "nada"}
-AFIRMACOES = {"sim", "s", "true", "yes"}
+
+VAZIOS = {"", "-", "--", "n/a", "na", "nada"}
+
+_ANTES = r"(ainda|por enquanto|ate agora|ate o momento|no momento|atualmente|hoje)\s+"
+INICIO_NEGACAO = re.compile(rf"^({_ANTES})?(nao|nenhum[ao]?s?|nunca|jamais|inexistente|ausente)\b")
+INICIO_AFIRMACAO = re.compile(r"^(sim|s|yes|true)\b")
+
+ADVERSATIVAS = re.compile(r"\b(mas|porem|contudo|entretanto|todavia|apesar|embora|so que)\b")
+
+MAX_PALAVRAS_NEGACAO = 6
 
 ESTAGIOS = ("concepcao", "desenvolvimento", "evolucao")
 
@@ -30,25 +39,41 @@ def _normalizar(texto: str) -> str:
     return " ".join(sem_acento.lower().split())
 
 
+def _nega(texto: str) -> bool:
+    return (
+        bool(INICIO_NEGACAO.match(texto))
+        and len(texto.split()) <= MAX_PALAVRAS_NEGACAO
+        and not ADVERSATIVAS.search(texto)
+    )
+
+
 def estado_do_campo(valor) -> str:
     # Traduz o valor recebido em atendida, pendente ou indeterminada
     if valor is None:
         return INDETERMINADA
     if isinstance(valor, bool):
         return ATENDIDA if valor else PENDENTE
-    return PENDENTE if _normalizar(str(valor)) in NEGACOES else ATENDIDA
+
+    texto = _normalizar(str(valor))
+    if texto in VAZIOS:
+        return PENDENTE
+    if _nega(texto):
+        return PENDENTE
+    if INICIO_NEGACAO.match(texto):
+        return INDETERMINADA
+    return ATENDIDA
 
 
 def _booleano(valor):
-    # Aceita true/false, "sim"/"não" e as negações reconhecidas. Devolve None se não der para saber.
+    # Aceita true/false, "sim"/"não" e suas variações. Devolve None se não der para saber.
     if valor is None:
         return None
     if isinstance(valor, bool):
         return valor
-    normalizado = _normalizar(str(valor))
-    if normalizado in AFIRMACOES:
+    texto = _normalizar(str(valor))
+    if INICIO_AFIRMACAO.match(texto) and not ADVERSATIVAS.search(texto):
         return True
-    if normalizado in NEGACOES:
+    if texto in VAZIOS or _nega(texto):
         return False
     return None
 
@@ -125,7 +150,7 @@ def selecionar_praticas(base: Base, entrada: dict) -> dict:
     }
 
 
-# Recebe a ficha e devolve trechos {"texto", "fonte"}. 
+# Recebe a ficha e devolve trechos {"texto", "fonte"}.
 Fundamentar = Callable[[dict], list[dict]]
 
 
