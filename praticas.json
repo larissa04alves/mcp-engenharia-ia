@@ -327,7 +327,7 @@
       },
       "pergunta": "Que verificações de qualidade vocês já fizeram nos dados?",
       "pontuacoes": { "impacto": 3, "necessidade": 3, "dependencia": 2, "esforco": 3 },
-      "orientacao": "Rodar uma verificação mínima — ausentes, duplicatas, faixas inválidas e distribuição das classes — e registrar o que foi encontrado.",
+      "orientacao": "Rodar uma verificação mínima — ausentes, duplicatas, faixas inválidas e distribuição da variável-alvo — e registrar o que foi encontrado.",
       "proxima_acao": "Executar a verificação mínima no conjunto atual e anotar os problemas encontrados.",
       "termos_busca": [
         "data quality",

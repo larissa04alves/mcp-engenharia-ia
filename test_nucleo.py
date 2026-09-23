@@ -237,6 +237,14 @@ def test_registro_traz_as_secoes_e_o_calculo_aberto():
     assert "RP2 Identificar os requisitos" in registro
 
 
+def test_registro_marca_ajuste_sem_efeito():
+    entrada = {"estagio": "concepcao", "tamanho_equipe": 2, "requisitos": False, "registro_decisoes": False}
+    registro = render_registro(BASE, analisar(BASE, entrada))
+    assert "necessidade 3 (sem efeito: já no máximo)" in registro  # RP2 já tem necessidade 3
+    assert "necessidade 1 → 2" in registro  # RP6 sobe de verdade
+    assert "esforço 2 → 1" in registro
+
+
 def test_justificativa_concorda_em_genero():
     contexto = identificar_contexto(BASE, {})
     justificativa = priorizar_praticas(BASE, ["RP1"], contexto)[0]["justificativa"]
