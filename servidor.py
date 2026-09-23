@@ -42,6 +42,11 @@ PREENCHIMENTO = (
     "se não, passe false. Não chute."
 )
 
+UMA_POR_VEZ = (
+    "Faça UMA pergunta por vez e espere a resposta antes da próxima; não liste todas de uma vez. "
+    "Se o cliente tiver ferramenta de perguntas com opções, use-a."
+)
+
 ESTAGIOS = (
     "concepcao (definindo o problema, ainda sem dados ou modelo), "
     "desenvolvimento (explorando dados ou treinando modelo, ainda não em uso) ou "
@@ -230,8 +235,8 @@ def gerar_plano_acao(projeto: Projeto) -> dict:
 def _roteiro(*perguntas: str) -> str:
     numeradas = "\n".join(f"{n}. {pergunta}" for n, pergunta in enumerate(perguntas, start=1))
     return (
-        f"Pergunte à equipe, uma de cada vez e em linguagem simples:\n{numeradas}\n\n"
-        f"Ao chamar as ferramentas: {PREENCHIMENTO}"
+        f"Pergunte à equipe, em linguagem simples:\n{numeradas}\n\n"
+        f"{UMA_POR_VEZ}\n\nAo chamar as ferramentas: {PREENCHIMENTO}"
     )
 
 
@@ -274,7 +279,7 @@ def conduzir_analise() -> str:
     return (
         "Conduza uma análise de práticas de Engenharia de IA com a equipe, nesta ordem:\n\n"
         "1. Colete as informações usando os roteiros coletar_projeto, coletar_requisitos e coletar_dados. "
-        "Pergunte em linguagem simples, sem jargão, e não invente resposta que a equipe não deu.\n"
+        f"Pergunte em linguagem simples, sem jargão, e não invente resposta que a equipe não deu. {UMA_POR_VEZ}\n"
         "2. Chame identificar_contexto.\n"
         "3. Chame selecionar_praticas.\n"
         "4. Se houver indeterminadas, faça as perguntas devolvidas e chame selecionar_praticas de novo.\n"

@@ -279,7 +279,10 @@ def _bloco_pratica(posicao: int, item: dict) -> list[str]:
     ]
     for ajuste in item["ajustes_aplicados"]:
         criterio = ACENTO.get(ajuste["criterio"], ajuste["criterio"])
-        linhas.append(f"**Ajuste:** {ajuste['descricao']} — {criterio} {ajuste['de']} → {ajuste['para']}")
+        efeito = f"{ajuste['de']} → {ajuste['para']}"
+        if ajuste["de"] == ajuste["para"]:
+            efeito = f"{ajuste['de']} (sem efeito: já no {'máximo' if ajuste['de'] == LIMITE_MAX else 'mínimo'})"
+        linhas.append(f"**Ajuste:** {ajuste['descricao']} — {criterio} {efeito}")
 
     for trecho in item.get("fundamentacao", []):
         linhas += ["", f"**Fundamentação:** “{trecho['texto']}”", f"   Fonte: {trecho['fonte']}"]
