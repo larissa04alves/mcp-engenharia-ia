@@ -29,6 +29,7 @@ TITULO_REFERENCIAS = re.compile(
 
 def _limpar(texto: str) -> str:
     texto = unicodedata.normalize("NFKC", texto)
+    texto = texto.replace("\u200b", "")  # espaço invisível que alguns PDFs carregam
     texto = re.sub(r"(\w)-\n(\w)", r"\1\2", texto)
     return " ".join(texto.split())
 

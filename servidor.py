@@ -9,12 +9,22 @@ from mcp.server.mcpserver import MCPServer
 from pydantic import BaseModel, Field
 
 import nucleo
+import rag
 from base import BaseInvalida, carregar
 
 try:
     BASE = carregar()
 except BaseInvalida as erro:
     print(erro, file=sys.stderr)
+    raise SystemExit(1)
+
+# A fundamentação é exigência do professor: sem índice, o servidor não sobe (SPEC §8.2).
+if not rag.indice_disponivel():
+    print(
+        "Índice da literatura não encontrado.\n"
+        "Coloque os PDFs em literatura/ e rode: uv run indexar.py",
+        file=sys.stderr,
+    )
     raise SystemExit(1)
 
 
@@ -63,6 +73,10 @@ class Projeto(BaseModel):
     def entrada(self) -> dict:
         # devolve apenas o que foi preenchido
         return self.model_dump(exclude_none=True)
+
+
+def _fundamentar(pratica: dict) -> list[dict]:
+    return [{"texto": t.texto, "fonte": t.fonte()} for t in rag.buscar(pratica["termos_busca"])]
 
 
 def _json(dados) -> str:
@@ -161,7 +175,7 @@ def selecionar_praticas(projeto: Projeto) -> dict:
 )
 def priorizar_praticas(ids: list[str], projeto: Projeto) -> dict:
     contexto = nucleo.identificar_contexto(BASE, projeto.entrada())
-    plano = nucleo.priorizar_praticas(BASE, ids, contexto)
+    plano = nucleo.priorizar_praticas(BASE, ids, contexto, _fundamentar)
 
     desconhecidos = [i for i in ids if i not in BASE.por_id]
     return {
@@ -178,7 +192,7 @@ def priorizar_praticas(ids: list[str], projeto: Projeto) -> dict:
     )
 )
 def gerar_plano_acao(projeto: Projeto) -> dict:
-    analise = nucleo.analisar(BASE, projeto.entrada())
+    analise = nucleo.analisar(BASE, projeto.entrada(), _fundamentar)
     return {
         "contexto": analise["contexto"]["atributos"],
         "ajustes_aplicados": [{"id": a["id"], "descricao": a["descricao"]} for a in analise["contexto"]["ajustes"]],

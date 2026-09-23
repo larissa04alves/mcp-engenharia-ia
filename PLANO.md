@@ -20,7 +20,8 @@ a reescrita das 12.
 | 4 — `servidor.py` | ✅ concluída |
 | **Fatia 1** | **✅ o MCP roda, com 11 operações e 4 práticas** |
 | 5 — `indexar.py` e `rag.py` | ✅ concluída |
-| 6 — Ligar o RAG ao servidor | ⏳ próxima |
+| 6 — Ligar o RAG ao servidor | ✅ concluída |
+| **Fatia 2** | **✅ o plano sai com citação, fonte e página** |
 | 7 — As outras 8 fichas | ⏳ |
 | 8 — Fechamento | ⏳ |
 
@@ -224,7 +225,17 @@ por DD1 devolve trecho sobre dados — não sobre requisitos.
 Tamanho: médio. Risco: **o mais alto do projeto** — primeira vez com ChromaDB e o formato
 real dos PDFs é desconhecido. A primeira execução baixa o modelo de embedding (~100 MB).
 
-## Etapa 6 — Ligar o RAG ao servidor
+## Etapa 6 — Ligar o RAG ao servidor ✅
+
+**Feito.** Por um cliente MCP real, via stdio: `priorizar_praticas` e `gerar_plano_acao`
+devolvem até 2 trechos por prática pendente, e o registro em markdown sai no formato da
+§5.3 (`📚 Fundamentação` + `Fonte: arquivo.pdf, p. N`). Com `indice/` removido, o servidor
+sai com código 1 e a mensagem da §8.2, sem stack trace.
+
+O `nucleo.py` recebe a busca como função opcional (`fundamentar`), chamada depois de `P` e
+nível calculados. A regra continua rodando sem índice — `uv run nucleo.py` segue funcionando
+— e o RAG não tem como alterar a pontuação.
+
 
 Injetar a fundamentação na saída das práticas pendentes, no formato da §5.3. Ligar a
 checagem de índice na subida (§8.2), com a mensagem que diz o que fazer.
@@ -286,8 +297,8 @@ PDFs ✅ ──▶ 5 ──▶ 6 ─────────┘
         └─ FATIA 2 ─┘   └FATIA 3┘ └F4┘
 ```
 
-A fatia 1 terminou e a etapa 5 também: o ChromaDB e os PDFs reais funcionaram. **Próxima:
-etapa 6**, ligar o RAG ao servidor.
+As fatias 1 e 2 terminaram. **Próxima: etapa 7**, as outras 8 fichas, já com o retorno
+real do RAG à vista para escolher `termos_busca` (em inglês, `DECISOES.md` item 9).
 
 A etapa 7 não depende do RAG para começar, mas depende dele para escolher `termos_busca`
 com o retorno real à vista — por isso vem depois da 6.

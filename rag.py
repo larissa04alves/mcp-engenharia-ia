@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from functools import cache
 from pathlib import Path
 
 import chromadb
@@ -35,6 +36,12 @@ def _cliente() -> chromadb.ClientAPI:
     return chromadb.PersistentClient(path=str(PASTA_INDICE), settings=Settings(anonymized_telemetry=False))
 
 
+@cache
+def _colecao() -> chromadb.Collection:
+    # Aberta uma vez por processo: o servidor consulta várias práticas por chamada.
+    return _cliente().get_collection(COLECAO)
+
+
 def recriar_colecao() -> chromadb.Collection:
     # Apaga e recria a coleção: indexar duas vezes dá o mesmo índice.
     cliente = _cliente()
@@ -61,8 +68,7 @@ def _truncar(texto: str) -> str:
 
 def buscar(termos_busca: list[str], k: int = MAX_TRECHOS) -> list[Trecho]:
     # Até k trechos abaixo do limiar. Lista vazia é resposta válida
-    colecao = _cliente().get_collection(COLECAO)
-    resultado = colecao.query(query_texts=[" ".join(termos_busca)], n_results=k)
+    resultado = _colecao().query(query_texts=[" ".join(termos_busca)], n_results=k)
     return [
         Trecho(_truncar(texto), meta["arquivo"], meta["pagina"], distancia)
         for texto, meta, distancia in zip(
