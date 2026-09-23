@@ -1,6 +1,4 @@
-# servidor mcp que implementa as ferramentas e recursos de engenharia de IA. Roda localmente, sem estado, e devolve JSON ou markdown.
-
-from __future__ import annotations
+"""Servidor MCP: as 11 operações (3 resources, 4 tools, 4 prompts) como camada fina sobre o núcleo. Sem estado."""
 
 import json
 import sys
@@ -16,13 +14,12 @@ try:
     BASE = carregar()
 except BaseInvalida as erro:
     print(erro, file=sys.stderr)
-    raise SystemExit(1)
+    raise SystemExit(1) from None
 
 # A fundamentação é exigência do professor: sem índice, o servidor não sobe (SPEC §8.2).
 if not rag.indice_disponivel():
     print(
-        "Índice da literatura não encontrado.\n"
-        "Coloque os PDFs em literatura/ e rode: uv run indexar.py",
+        "Índice da literatura não encontrado.\nColoque os PDFs em literatura/ e rode: uv run indexar.py",
         file=sys.stderr,
     )
     raise SystemExit(1)
@@ -38,18 +35,14 @@ servidor = MCPServer(
     ),
 )
 
-
-
-# Como preencher cada campo de prática.
 PREENCHIMENTO = (
-    "Texto com o que a equipe informou. "
-    "Use false se a equipe declarou que não faz ou não tem. "
-    "OMITA o campo se ainda não perguntou — vira lacuna, e o servidor devolve a pergunta."
+    "Passe o texto que a equipe informou; false se ela declarou que não faz ou não tem; "
+    "OMITA o campo se ainda não perguntou — vira lacuna, e o servidor devolve a pergunta. Não chute."
 )
 
 
 class Projeto(BaseModel):
-    # Os 16 campos de entrada. Nenhum é obrigatório: informação ausente vira lacuna
+    """Os 16 campos de entrada. Nenhum é obrigatório: informação ausente vira lacuna."""
 
     tipo_problema: str | None = Field(None, description="Classificação, regressão, agrupamento, geração, outro.")
     tamanho_equipe: int | None = Field(None, description="Número de integrantes da equipe.")
@@ -58,20 +51,33 @@ class Projeto(BaseModel):
 
     objetivo: str | bool | None = Field(None, description=f"Objetivo do sistema. {PREENCHIMENTO}")
     requisitos: str | bool | None = Field(None, description=f"Requisitos identificados. {PREENCHIMENTO}")
-    criterios_sucesso: str | bool | None = Field(None, description=f"Métrica e valor que contam como sucesso. {PREENCHIMENTO}")
+    criterios_sucesso: str | bool | None = Field(
+        None, description=f"Métrica e valor que contam como sucesso. {PREENCHIMENTO}"
+    )
     restricoes: str | bool | None = Field(None, description=f"Prazo, custo, regulatório, técnico. {PREENCHIMENTO}")
     responsabilidades: str | bool | None = Field(None, description=f"Quem faz o quê na equipe. {PREENCHIMENTO}")
-    registro_decisoes: str | bool | None = Field(None, description=f"Onde as decisões do projeto ficam registradas. {PREENCHIMENTO}")
+    registro_decisoes: str | bool | None = Field(
+        None, description=f"Onde as decisões ficam registradas. {PREENCHIMENTO}"
+    )
 
     fonte_dados: str | bool | None = Field(None, description=f"De onde os dados vêm. {PREENCHIMENTO}")
-    documentacao_dados: str | bool | None = Field(None, description=f"Documentação existente dos dados. {PREENCHIMENTO}")
-    caracteristicas_dados: str | bool | None = Field(None, description=f"Volume, formato, período, variáveis. {PREENCHIMENTO}")
-    qualidade_dados: str | bool | None = Field(None, description=f"Verificações de qualidade já feitas. {PREENCHIMENTO}")
-    problemas_limitacoes: str | bool | None = Field(None, description=f"Problemas conhecidos nos dados. {PREENCHIMENTO}")
-    organizacao_infos: str | bool | None = Field(None, description=f"Como as informações dos dados estão organizadas. {PREENCHIMENTO}")
+    documentacao_dados: str | bool | None = Field(
+        None, description=f"Documentação existente dos dados. {PREENCHIMENTO}"
+    )
+    caracteristicas_dados: str | bool | None = Field(
+        None, description=f"Volume, formato, período, variáveis. {PREENCHIMENTO}"
+    )
+    qualidade_dados: str | bool | None = Field(
+        None, description=f"Verificações de qualidade já feitas. {PREENCHIMENTO}"
+    )
+    problemas_limitacoes: str | bool | None = Field(
+        None, description=f"Problemas conhecidos nos dados. {PREENCHIMENTO}"
+    )
+    organizacao_infos: str | bool | None = Field(
+        None, description=f"Como as informações dos dados estão organizadas. {PREENCHIMENTO}"
+    )
 
     def entrada(self) -> dict:
-        # devolve apenas o que foi preenchido
         return self.model_dump(exclude_none=True)
 
 
@@ -79,11 +85,17 @@ def _fundamentar(pratica: dict) -> list[dict]:
     return [{"texto": t.texto, "fonte": t.fonte()} for t in rag.buscar(pratica["termos_busca"])]
 
 
+def _resumo_ajuste(ajuste: dict) -> dict:
+    return {chave: ajuste[chave] for chave in ("id", "descricao", "criterio", "delta")}
+
+
 def _json(dados) -> str:
     return json.dumps(dados, ensure_ascii=False, indent=2)
 
 
-# resources que devolvem informações da base de práticas
+# --- resources: a base de práticas, para leitura ---
+
+
 @servidor.resource(
     "praticas://catalogo",
     name="Catálogo de práticas",
@@ -126,21 +138,20 @@ def criterios() -> str:
             "formula": BASE.formula,
             "faixas": BASE.faixas,
             "ajustes": BASE.ajustes,
-            "observacao": "A prioridade vem exclusivamente desta regra. Nenhum modelo de linguagem participa do cálculo.",
+            "observacao": "A prioridade vem só desta regra. Nenhum modelo de linguagem participa do cálculo.",
         }
     )
 
 
-# ferramentas que implementam o fluxo de análise de práticas.
+# --- tools: o fluxo de análise, na ordem ---
+
+
 @servidor.tool(description="Normaliza o contexto do projeto e diz quais ajustes de pontuação se aplicam.")
 def identificar_contexto(projeto: Projeto) -> dict:
     contexto = nucleo.identificar_contexto(BASE, projeto.entrada())
     return {
         "atributos": contexto["atributos"],
-        "ajustes_aplicaveis": [
-            {"id": a["id"], "descricao": a["descricao"], "criterio": a["criterio"], "delta": a["delta"]}
-            for a in contexto["ajustes"]
-        ],
+        "ajustes_aplicaveis": [_resumo_ajuste(a) for a in contexto["ajustes"]],
         "proximo_passo": "Chame selecionar_praticas com o mesmo projeto.",
     }
 
@@ -174,13 +185,11 @@ def selecionar_praticas(projeto: Projeto) -> dict:
     )
 )
 def priorizar_praticas(ids: list[str], projeto: Projeto) -> dict:
+    ids = [i.upper() for i in ids]
     contexto = nucleo.identificar_contexto(BASE, projeto.entrada())
-    plano = nucleo.priorizar_praticas(BASE, ids, contexto, _fundamentar)
-
-    desconhecidos = [i for i in ids if i not in BASE.por_id]
     return {
-        "plano": plano,
-        "ids_desconhecidos": desconhecidos,
+        "plano": nucleo.priorizar_praticas(BASE, ids, contexto, _fundamentar),
+        "ids_desconhecidos": [i for i in ids if i not in BASE.por_id],
         "proximo_passo": "Chame gerar_plano_acao com o mesmo projeto para receber o registro em markdown.",
     }
 
@@ -195,7 +204,7 @@ def gerar_plano_acao(projeto: Projeto) -> dict:
     analise = nucleo.analisar(BASE, projeto.entrada(), _fundamentar)
     return {
         "contexto": analise["contexto"]["atributos"],
-        "ajustes_aplicados": [{"id": a["id"], "descricao": a["descricao"]} for a in analise["contexto"]["ajustes"]],
+        "ajustes_aplicados": [_resumo_ajuste(a) for a in analise["contexto"]["ajustes"]],
         "atendidas": analise["selecao"]["atendidas"],
         "lacunas": analise["selecao"]["indeterminadas"],
         "plano": analise["plano"],
@@ -207,49 +216,48 @@ def gerar_plano_acao(projeto: Projeto) -> dict:
     }
 
 
-# prompts que guiam a coleta de informações
+# --- prompts: roteiros de coleta ---
 
-_COMO_PREENCHER = (
-    "Ao chamar as ferramentas: passe o texto da equipe no campo correspondente; "
-    "passe false quando ela disser que não faz ou não tem; e OMITA o campo quando ainda não tiver perguntado. "
-    "Essa distinção decide se a prática vira pendente ou lacuna — não chute."
-)
+
+def _roteiro(*perguntas: str) -> str:
+    numeradas = "\n".join(f"{n}. {pergunta}" for n, pergunta in enumerate(perguntas, start=1))
+    return (
+        f"Pergunte à equipe, uma de cada vez e em linguagem simples:\n{numeradas}\n\n"
+        f"Ao chamar as ferramentas: {PREENCHIMENTO}"
+    )
 
 
 @servidor.prompt(description="Roteiro para coletar as informações gerais do projeto.")
 def coletar_projeto() -> str:
-    return (
-        "Pergunte à equipe, uma de cada vez e em linguagem simples:\n"
-        "1. Qual problema o sistema precisa resolver, e para quem? (objetivo)\n"
-        "2. Que tipo de problema é: classificação, regressão, agrupamento, geração? (tipo_problema)\n"
-        "3. Quantas pessoas trabalham no projeto? (tamanho_equipe)\n"
-        "4. Em que estágio ele está: concepcao, desenvolvimento ou evolucao? (estagio)\n\n" + _COMO_PREENCHER
+    return _roteiro(
+        "Qual problema o sistema precisa resolver, e para quem? (objetivo)",
+        "Que tipo de problema é: classificação, regressão, agrupamento, geração? (tipo_problema)",
+        "Quantas pessoas trabalham no projeto? (tamanho_equipe)",
+        "Em que estágio ele está: concepcao, desenvolvimento ou evolucao? (estagio)",
     )
 
 
 @servidor.prompt(description="Roteiro para coletar requisitos, critérios, restrições e responsabilidades.")
 def coletar_requisitos() -> str:
-    return (
-        "Pergunte à equipe:\n"
-        "1. Quais requisitos já foram identificados? (requisitos)\n"
-        "2. Que métrica e que valor contam como sucesso? (criterios_sucesso)\n"
-        "3. Que restrições existem: prazo, custo, regulatório, técnico? (restricoes)\n"
-        "4. Quem faz o quê na equipe? (responsabilidades)\n"
-        "5. Onde as decisões do projeto ficam registradas? (registro_decisoes)\n\n" + _COMO_PREENCHER
+    return _roteiro(
+        "Quais requisitos já foram identificados? (requisitos)",
+        "Que métrica e que valor contam como sucesso? (criterios_sucesso)",
+        "Que restrições existem: prazo, custo, regulatório, técnico? (restricoes)",
+        "Quem faz o quê na equipe? (responsabilidades)",
+        "Onde as decisões do projeto ficam registradas? (registro_decisoes)",
     )
 
 
 @servidor.prompt(description="Roteiro para coletar informações sobre os dados.")
 def coletar_dados() -> str:
-    return (
-        "Pergunte à equipe:\n"
-        "1. De onde vêm os dados? (fonte_dados)\n"
-        "2. Existe documentação dos dados? (documentacao_dados)\n"
-        "3. Qual o volume, formato, período e quais são as variáveis? (caracteristicas_dados)\n"
-        "4. Que verificações de qualidade já foram feitas? (qualidade_dados)\n"
-        "5. Que problemas ou limitações vocês já conhecem? (problemas_limitacoes)\n"
-        "6. Como essas informações estão organizadas hoje? (organizacao_infos)\n"
-        "7. Há dados pessoais ou sensíveis envolvidos? (dados_sensiveis)\n\n" + _COMO_PREENCHER
+    return _roteiro(
+        "De onde vêm os dados? (fonte_dados)",
+        "Existe documentação dos dados? (documentacao_dados)",
+        "Qual o volume, formato, período e quais são as variáveis? (caracteristicas_dados)",
+        "Que verificações de qualidade já foram feitas? (qualidade_dados)",
+        "Que problemas ou limitações vocês já conhecem? (problemas_limitacoes)",
+        "Como essas informações estão organizadas hoje? (organizacao_infos)",
+        "Há dados pessoais ou sensíveis envolvidos? (dados_sensiveis)",
     )
 
 
@@ -267,8 +275,13 @@ def conduzir_analise() -> str:
         "7. Apresente o plano em linguagem acessível, na ordem de prioridade, e ofereça salvar "
         "registro_markdown num arquivo do repositório da equipe.\n\n"
         "A prioridade vem de uma regra fixa do servidor. Não recalcule, não reordene e não invente "
-        "pontuação — se discordar do resultado, diga isso à equipe em vez de alterar a saída.\n\n" + _COMO_PREENCHER
+        "pontuação — se discordar do resultado, diga isso à equipe em vez de alterar a saída.\n\n"
+        f"Ao chamar as ferramentas: {PREENCHIMENTO}"
     )
+
+
+# `mcp dev` e `mcp run` procuram um objeto chamado `mcp`, `server` ou `app` (DECISOES.md, item 12).
+server = servidor
 
 
 if __name__ == "__main__":

@@ -1,6 +1,4 @@
-### Carrega e valida a base de conhecimento (praticas.json)
-
-from __future__ import annotations
+"""Carrega e valida a base de conhecimento (praticas.json)."""
 
 import json
 from pathlib import Path
@@ -25,7 +23,7 @@ PONTUACAO_MIN, PONTUACAO_MAX = 4, 12
 
 
 class BaseInvalida(Exception):
-    # Reune os problemas encontrados na validação da base de conhecimento.
+    """Reúne todos os problemas encontrados na validação, para acusá-los de uma vez."""
 
     def __init__(self, problemas: list[str]):
         self.problemas = problemas
@@ -37,7 +35,7 @@ class BaseInvalida(Exception):
 
 
 class Base:
-   # Acessa a base de conhecimento já validada, com métodos de conveniência.
+    """Base de conhecimento já validada, com índice por id."""
 
     def __init__(self, dados: dict):
         self.versao: str = dados["versao"]
@@ -50,11 +48,6 @@ class Base:
         self.praticas: list[dict] = dados["praticas"]
 
         self.por_id = {p["id"]: p for p in self.praticas}
-        self.por_campo = {p["campo"]: p for p in self.praticas}
-
-    @property
-    def campos(self) -> tuple[str, ...]:
-        return tuple(p["campo"] for p in self.praticas)
 
     def nivel(self, pontuacao: int) -> str:
         for faixa in self.faixas:
@@ -64,7 +57,7 @@ class Base:
 
 
 def carregar(caminho: Path = ARQUIVO) -> Base:
-    # Lê, valida e devolve a base. Levanta BaseInvalida com todos os problemas.
+    """Lê, valida e devolve a base. Levanta BaseInvalida com todos os problemas."""
     try:
         dados = json.loads(caminho.read_text(encoding="utf-8"))
     except FileNotFoundError:
@@ -114,7 +107,7 @@ def _validar(dados) -> list[str]:
 
 
 def _validar_faixas(faixas) -> list[str]:
-    # Valida as faixas de pontuação, garantindo que cubram o intervalo completo sem sobreposição.
+    """As faixas precisam cobrir todas as pontuações possíveis, sem sobreposição."""
     if not isinstance(faixas, list) or not faixas:
         return ["faixas deveria ser uma lista não vazia"]
 
@@ -126,11 +119,11 @@ def _validar_faixas(faixas) -> list[str]:
             continue
         minimo, maximo = faixa.get("min"), faixa.get("max")
         if not (isinstance(minimo, int) and isinstance(maximo, int) and minimo <= maximo):
-            problemas.append(f'faixa {faixa["nivel"]} — min/max inválidos ({minimo}, {maximo})')
+            problemas.append(f"faixa {faixa['nivel']} — min/max inválidos ({minimo}, {maximo})")
             continue
         intervalo = set(range(minimo, maximo + 1))
         if sobreposto := coberto & intervalo:
-            problemas.append(f'faixa {faixa["nivel"]} — sobrepõe as pontuações {sorted(sobreposto)}')
+            problemas.append(f"faixa {faixa['nivel']} — sobrepõe as pontuações {sorted(sobreposto)}")
         coberto |= intervalo
 
     esperado = set(range(PONTUACAO_MIN, PONTUACAO_MAX + 1))
@@ -142,7 +135,6 @@ def _validar_faixas(faixas) -> list[str]:
 
 
 def _validar_praticas(praticas, completa: bool) -> list[str]:
-    # Valida as práticas, garantindo que cada uma tenha os campos obrigatórios e que não haja duplicatas de id ou campo.
     if not isinstance(praticas, list) or not praticas:
         return ["praticas deveria ser uma lista não vazia"]
 
@@ -168,7 +160,7 @@ def _validar_praticas(praticas, completa: bool) -> list[str]:
             problemas.append(f"{onde} — documental_extensa deveria ser true ou false")
 
         if pratica.get("grupo") not in GRUPOS:
-            problemas.append(f'{onde} — grupo = {pratica.get("grupo")!r} (esperado um de {", ".join(GRUPOS)})')
+            problemas.append(f"{onde} — grupo = {pratica.get('grupo')!r} (esperado um de {', '.join(GRUPOS)})")
 
         condicoes = pratica.get("condicoes")
         if not isinstance(condicoes, dict):
@@ -187,11 +179,11 @@ def _validar_praticas(praticas, completa: bool) -> list[str]:
                 if not (isinstance(valor, int) and not isinstance(valor, bool) and 1 <= valor <= 3):
                     problemas.append(f"{onde} — pontuacoes.{criterio} = {valor!r} (esperado 1 a 3)")
             if extras := set(pontuacoes) - set(CRITERIOS):
-                problemas.append(f'{onde} — pontuacoes tem critério desconhecido: {", ".join(sorted(extras))}')
+                problemas.append(f"{onde} — pontuacoes tem critério desconhecido: {', '.join(sorted(extras))}")
 
         if _texto(pratica.get("id")):
             if pratica["id"] in vistos_id:
-                problemas.append(f'{onde} — id repetido')
+                problemas.append(f"{onde} — id repetido")
             vistos_id.add(pratica["id"])
 
         if _texto(pratica.get("campo")):
@@ -222,7 +214,7 @@ def _validar_ajustes(ajustes, campos: set[str], ids: set[str], completa: bool) -
             problemas.append(f"ajustes[{posicao}] — deveria ser um objeto")
             continue
 
-        onde = f'ajuste {ajuste["id"]}' if _texto(ajuste.get("id")) else f"ajustes[{posicao}]"
+        onde = f"ajuste {ajuste['id']}" if _texto(ajuste.get("id")) else f"ajustes[{posicao}]"
 
         if not _texto(ajuste.get("descricao")):
             problemas.append(f"{onde} — descricao ausente ou vazia")
@@ -232,7 +224,7 @@ def _validar_ajustes(ajustes, campos: set[str], ids: set[str], completa: bool) -
             vistos.add(ajuste["id"])
 
         if ajuste.get("criterio") not in CRITERIOS:
-            problemas.append(f'{onde} — criterio = {ajuste.get("criterio")!r} (esperado um de {", ".join(CRITERIOS)})')
+            problemas.append(f"{onde} — criterio = {ajuste.get('criterio')!r} (esperado um de {', '.join(CRITERIOS)})")
 
         delta = ajuste.get("delta")
         if not (isinstance(delta, int) and not isinstance(delta, bool) and delta != 0):
@@ -257,11 +249,11 @@ def _validar_quando(quando, onde: str, campos: set[str], completa: bool) -> list
 
     usados = [op for op in OPERADORES if op in quando]
     if len(usados) != 1:
-        problemas.append(f'{onde} — quando deveria ter exatamente um de {", ".join(OPERADORES)} (tem {len(usados)})')
+        problemas.append(f"{onde} — quando deveria ter exatamente um de {', '.join(OPERADORES)} (tem {len(usados)})")
     elif usados[0] == "ate" and not isinstance(quando["ate"], int):
-        problemas.append(f'{onde} — quando.ate = {quando["ate"]!r} (esperado inteiro)')
+        problemas.append(f"{onde} — quando.ate = {quando['ate']!r} (esperado inteiro)")
     elif usados[0] == "preenchido" and not isinstance(quando["preenchido"], bool):
-        problemas.append(f'{onde} — quando.preenchido = {quando["preenchido"]!r} (esperado true ou false)')
+        problemas.append(f"{onde} — quando.preenchido = {quando['preenchido']!r} (esperado true ou false)")
 
     return problemas
 
@@ -272,18 +264,18 @@ def _validar_alvo(alvo, onde: str, ids: set[str], completa: bool) -> list[str]:
 
     usados = [s for s in SELETORES if s in alvo]
     if len(usados) != 1:
-        return [f'{onde} — alvo deveria ter exatamente um de {", ".join(SELETORES)} (tem {len(usados)})']
+        return [f"{onde} — alvo deveria ter exatamente um de {', '.join(SELETORES)} (tem {len(usados)})"]
 
     seletor = usados[0]
     if seletor == "grupo" and alvo["grupo"] not in GRUPOS:
-        return [f'{onde} — alvo.grupo = {alvo["grupo"]!r} (esperado um de {", ".join(GRUPOS)})']
+        return [f"{onde} — alvo.grupo = {alvo['grupo']!r} (esperado um de {', '.join(GRUPOS)})"]
     if seletor == "documental_extensa" and not isinstance(alvo["documental_extensa"], bool):
-        return [f'{onde} — alvo.documental_extensa deveria ser true ou false']
+        return [f"{onde} — alvo.documental_extensa deveria ser true ou false"]
     if seletor == "ids":
         if not _lista_de_texto(alvo["ids"]):
             return [f"{onde} — alvo.ids deveria ser uma lista não vazia de ids"]
         if completa and (desconhecidos := [i for i in alvo["ids"] if i not in ids]):
-            return [f'{onde} — alvo.ids desconhecido(s): {", ".join(desconhecidos)}']
+            return [f"{onde} — alvo.ids desconhecido(s): {', '.join(desconhecidos)}"]
     return []
 
 
@@ -294,7 +286,7 @@ if __name__ == "__main__":
         base = carregar()
     except BaseInvalida as erro:
         print(erro, file=sys.stderr)
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
     cobertura = "completa" if base.completa else "parcial"
     print(f"praticas.json v{base.versao} — cobertura {cobertura}")

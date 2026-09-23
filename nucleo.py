@@ -1,15 +1,18 @@
-# Analisa práticas de engenharia de IA, priorizando as pendentes e justificando a classificação.
+"""A regra de análise: contexto, seleção, priorização e registro. Puro, sem IO nem modelo de linguagem."""
 
-from __future__ import annotations
-
+import re
 import unicodedata
 from collections.abc import Callable
 from datetime import date
 
 from base import CRITERIOS, Base, carregar
 
-NEGACOES = {"", "-", "n/a", "na", "nao", "nenhum", "nenhuma", "nao temos", "nao fazemos", "nao sei", "nada"}
-AFIRMACOES = {"sim", "s", "true", "yes"}
+VAZIOS = {"", "-", "--", "n/a", "na", "nada"}
+
+_ANTES = r"(ainda|por enquanto|ate agora|ate o momento|no momento|atualmente|hoje)\s+"
+INICIO_NEGACAO = re.compile(rf"^({_ANTES})?(nao|nenhum[ao]?s?|nunca|jamais|inexistente|ausente)\b")
+ADVERSATIVAS = re.compile(r"\b(mas|porem|contudo|entretanto|todavia|apesar|embora|so que)\b")
+MAX_PALAVRAS_NEGACAO = 6
 
 ESTAGIOS = ("concepcao", "desenvolvimento", "evolucao")
 
@@ -24,76 +27,85 @@ ROTULO_ESTAGIO = {"concepcao": "concepção", "desenvolvimento": "desenvolviment
 
 LIMITE_MIN, LIMITE_MAX = 1, 3
 
+# Recebe a ficha e devolve trechos {"texto", "fonte"}.
+Fundamentar = Callable[[dict], list[dict]]
+
 
 def _normalizar(texto: str) -> str:
     sem_acento = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode()
     return " ".join(sem_acento.lower().split())
 
 
+def _nega(texto: str) -> bool:
+    return (
+        bool(INICIO_NEGACAO.match(texto))
+        and len(texto.split()) <= MAX_PALAVRAS_NEGACAO
+        and not ADVERSATIVAS.search(texto)
+    )
+
+
 def estado_do_campo(valor) -> str:
-    # Traduz o valor recebido em atendida, pendente ou indeterminada
+    """Traduz o valor de um campo de prática em atendida, pendente ou indeterminada (SPEC §2.3)."""
     if valor is None:
         return INDETERMINADA
     if isinstance(valor, bool):
         return ATENDIDA if valor else PENDENTE
-    return PENDENTE if _normalizar(str(valor)) in NEGACOES else ATENDIDA
+
+    texto = _normalizar(str(valor))
+    if texto in VAZIOS or _nega(texto):
+        return PENDENTE
+    if INICIO_NEGACAO.match(texto):
+        return INDETERMINADA
+    return ATENDIDA
 
 
-def _booleano(valor):
-    # Aceita true/false, "sim"/"não" e as negações reconhecidas. Devolve None se não der para saber.
-    if valor is None:
-        return None
-    if isinstance(valor, bool):
-        return valor
-    normalizado = _normalizar(str(valor))
-    if normalizado in AFIRMACOES:
-        return True
-    if normalizado in NEGACOES:
-        return False
-    return None
+# Os tipos dos campos de contexto vêm garantidos pelo servidor (SPEC §2.2); aqui só se descarta o que fugir deles.
+def _inteiro(valor) -> int | None:
+    return valor if isinstance(valor, int) and not isinstance(valor, bool) else None
 
 
-def _inteiro(valor):
-    try:
-        return int(valor)
-    except (TypeError, ValueError):
-        return None
+def _booleano(valor) -> bool | None:
+    return valor if isinstance(valor, bool) else None
+
+
+def _estagio(valor) -> str | None:
+    estagio = _normalizar(str(valor or ""))
+    return estagio if estagio in ESTAGIOS else None
+
+
+# campo de contexto → (rótulo no registro, normalizador), na ordem em que aparecem na saída.
+CONTEXTO = {
+    "tipo_problema": ("Tipo de problema", lambda valor: valor or None),
+    "tamanho_equipe": ("Tamanho da equipe", _inteiro),
+    "estagio": ("Estágio", _estagio),
+    "dados_sensiveis": ("Dados pessoais ou sensíveis", _booleano),
+}
 
 
 def identificar_contexto(base: Base, entrada: dict) -> dict:
-    # Normaliza os campos de contexto e devolve os ajustes que se aplicam a esta análise.
-    estagio = _normalizar(str(entrada.get("estagio") or ""))
-    atributos = {
-        "tipo_problema": entrada.get("tipo_problema") or None,
-        "tamanho_equipe": _inteiro(entrada.get("tamanho_equipe")),
-        "estagio": estagio if estagio in ESTAGIOS else None,
-        "dados_sensiveis": _booleano(entrada.get("dados_sensiveis")),
-    }
-
+    """Normaliza os campos de contexto e devolve os ajustes que se aplicam a esta análise."""
+    atributos = {campo: normalizar(entrada.get(campo)) for campo, (_, normalizar) in CONTEXTO.items()}
     valores = {**entrada, **atributos}
     ajustes = [a for a in base.ajustes if _ajuste_dispara(a, valores)]
-
     return {"atributos": atributos, "ajustes": ajustes}
 
 
 def _ajuste_dispara(ajuste: dict, valores: dict) -> bool:
-    # Verifica se o ajuste se aplica a este contexto. Se sim, devolve True; senão, False.
     quando = ajuste["quando"]
     valor = valores.get(quando["campo"])
 
     if "igual" in quando:
         alvo = quando["igual"]
         if isinstance(alvo, bool):
-            return _booleano(valor) is alvo
+            return valor is alvo
         return valor is not None and _normalizar(str(valor)) == _normalizar(str(alvo))
     if "ate" in quando:
         numero = _inteiro(valor)
         return numero is not None and numero <= quando["ate"]
-    return (estado_do_campo(valor) == ATENDIDA) is quando["preenchido"]
+    return (estado_do_campo(valor) == ATENDIDA) == quando["preenchido"]
 
 
 def _ajuste_atinge(ajuste: dict, pratica: dict) -> bool:
-    # Verifica se o ajuste se aplica a esta prática. Se sim, devolve True; senão, False.
     alvo = ajuste["alvo"]
     if "grupo" in alvo:
         return pratica["grupo"] == alvo["grupo"]
@@ -103,7 +115,7 @@ def _ajuste_atinge(ajuste: dict, pratica: dict) -> bool:
 
 
 def selecionar_praticas(base: Base, entrada: dict) -> dict:
-    # Classifica cada prática lendo o único campo que a determina.
+    """Classifica cada prática lendo o único campo que a determina."""
     selecao = {ATENDIDA: [], PENDENTE: [], INDETERMINADA: []}
 
     for pratica in base.praticas:
@@ -125,16 +137,16 @@ def selecionar_praticas(base: Base, entrada: dict) -> dict:
     }
 
 
-# Recebe a ficha e devolve trechos {"texto", "fonte"}. 
-Fundamentar = Callable[[dict], list[dict]]
-
-
-def priorizar_praticas(base: Base, ids: list[str], contexto: dict, fundamentar: Fundamentar | None = None) -> list[dict]:
-    # Aplica os ajustes, calcula P = I + N + D + (4 - E) e classifica. Ordena por P
-    priorizadas = [_priorizar_uma(base, base.por_id[i], contexto["ajustes"]) for i in ids if i in base.por_id]
-    if fundamentar:
-        for item in priorizadas:
-            item["fundamentacao"] = fundamentar(base.por_id[item["id"]])
+def priorizar_praticas(
+    base: Base, ids: list[str], contexto: dict, fundamentar: Fundamentar | None = None
+) -> list[dict]:
+    """Aplica os ajustes, calcula P = I + N + D + (4 - E), classifica e ordena por P decrescente."""
+    priorizadas = []
+    for pratica in (base.por_id[i] for i in ids if i in base.por_id):
+        item = _priorizar_uma(base, pratica, contexto["ajustes"])
+        if fundamentar:
+            item["fundamentacao"] = fundamentar(pratica)
+        priorizadas.append(item)
     return sorted(priorizadas, key=lambda item: (-item["pontuacao"], item["id"]))
 
 
@@ -191,9 +203,8 @@ def _frase_criterios(base: Base, final: dict) -> str:
     return ", ".join(termos[:-1]) + " e " + termos[-1]
 
 
-
 def analisar(base: Base, entrada: dict, fundamentar: Fundamentar | None = None) -> dict:
-    # analisa o contexto, classifica as práticas e devolve o plano de ação priorizado
+    """Contexto, seleção e plano priorizado das pendentes, numa chamada."""
     contexto = identificar_contexto(base, entrada)
     selecao = selecionar_praticas(base, entrada)
     plano = priorizar_praticas(base, [p["id"] for p in selecao["pendentes"]], contexto, fundamentar)
@@ -201,7 +212,7 @@ def analisar(base: Base, entrada: dict, fundamentar: Fundamentar | None = None) 
 
 
 def render_registro(base: Base, analise: dict, quando: date | None = None) -> str:
-    # Registro do processo em markdown. O servidor devolve este texto; quem grava o arquivo é o assistente.
+    """Registro do processo em markdown. O servidor devolve o texto; quem grava o arquivo é o assistente."""
     contexto, selecao, plano = analise["contexto"], analise["selecao"], analise["plano"]
     linhas = [
         "# Registro de análise — Engenharia de IA",
@@ -211,35 +222,27 @@ def render_registro(base: Base, analise: dict, quando: date | None = None) -> st
         "## Contexto do projeto",
         "",
     ]
-
-    rotulos = {
-        "tipo_problema": "Tipo de problema",
-        "tamanho_equipe": "Tamanho da equipe",
-        "estagio": "Estágio",
-        "dados_sensiveis": "Dados pessoais ou sensíveis",
-    }
-    for chave, rotulo in rotulos.items():
-        linhas.append(f"- **{rotulo}:** {_legivel(chave, contexto['atributos'][chave])}")
+    for campo, (rotulo, _) in CONTEXTO.items():
+        linhas.append(f"- **{rotulo}:** {_legivel(campo, contexto['atributos'][campo])}")
 
     linhas += ["", "## Ajustes de contexto aplicáveis", ""]
-    if contexto["ajustes"]:
-        linhas += [f"- {a['descricao']} → {a['delta']:+d} em {ACENTO.get(a['criterio'], a['criterio'])}" for a in contexto["ajustes"]]
-    else:
-        linhas.append("Nenhum.")
+    linhas += [
+        f"- {a['descricao']} → {a['delta']:+d} em {ACENTO.get(a['criterio'], a['criterio'])}"
+        for a in contexto["ajustes"]
+    ] or ["Nenhum."]
 
     linhas += ["", f"## Práticas atendidas ({len(selecao['atendidas'])})", ""]
     linhas += [f"- **{p['id']} {p['nome']}** — {p['motivo']}" for p in selecao["atendidas"]] or ["Nenhuma."]
 
     linhas += ["", f"## Plano de ação ({len(plano)} prática(s) pendente(s))", ""]
-    if not plano:
-        linhas.append("Nenhuma prática pendente.")
     for posicao, item in enumerate(plano, start=1):
         linhas += _bloco_pratica(posicao, item)
+    if not plano:
+        linhas.append("Nenhuma prática pendente.")
 
     linhas += ["", f"## Lacunas ({len(selecao['indeterminadas'])})", ""]
     if selecao["indeterminadas"]:
-        linhas.append("Estas práticas não puderam ser classificadas. Perguntas a fazer à equipe:")
-        linhas.append("")
+        linhas += ["Estas práticas não puderam ser classificadas. Perguntas a fazer à equipe:", ""]
         linhas += [f"- **{p['id']} {p['nome']}** — {p['pergunta']}" for p in selecao["indeterminadas"]]
     else:
         linhas.append("Nenhuma.")
@@ -247,12 +250,12 @@ def render_registro(base: Base, analise: dict, quando: date | None = None) -> st
     return "\n".join(linhas) + "\n"
 
 
-def _legivel(chave: str, valor) -> str:
+def _legivel(campo: str, valor) -> str:
     if valor is None:
         return "não informado"
     if isinstance(valor, bool):
         return "sim" if valor else "não"
-    if chave == "estagio":
+    if campo == "estagio":
         return ROTULO_ESTAGIO.get(valor, valor)
     return str(valor)
 
@@ -285,19 +288,25 @@ def _bloco_pratica(posicao: int, item: dict) -> list[str]:
     return linhas
 
 
+EXEMPLO = {
+    # contexto
+    "tipo_problema": "classificação",
+    "tamanho_equipe": 3,
+    "estagio": "concepcao",
+    "dados_sensiveis": True,
+    # campos de prática
+    "objetivo": "Prever quais alunos correm risco de evasão no semestre seguinte.",
+    "registro_decisoes": "não temos",
+    "qualidade_dados": False,
+}
+
+
 if __name__ == "__main__":
+    # uv run nucleo.py [entrada.json] — sem argumento, roda o EXEMPLO.
+    import json
+    import sys
+    from pathlib import Path
+
+    entrada = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8")) if len(sys.argv) > 1 else EXEMPLO
     base = carregar()
-
-    exemplo = {
-        # contexto
-        "tipo_problema": "classificação",
-        "tamanho_equipe": 3,
-        "estagio": "concepcao",
-        "dados_sensiveis": True,
-        # campos de prática
-        "objetivo": "Prever quais alunos correm risco de evasão no semestre seguinte.",
-        "registro_decisoes": "não temos",
-        "qualidade_dados": False,
-    }
-
-    print(render_registro(base, analisar(base, exemplo)))
+    print(render_registro(base, analisar(base, entrada)))
