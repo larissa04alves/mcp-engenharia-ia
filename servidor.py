@@ -270,6 +270,8 @@ def conduzir_analise() -> str:
         "pontuação — se discordar do resultado, diga isso à equipe em vez de alterar a saída.\n\n" + _COMO_PREENCHER
     )
 
+server = servidor
+
 
 if __name__ == "__main__":
     servidor.run()

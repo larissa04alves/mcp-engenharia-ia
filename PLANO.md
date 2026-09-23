@@ -24,9 +24,15 @@ a reescrita das 12.
 | **Fatia 2** | **✅ o plano sai com citação, fonte e página** |
 | 7 — As outras 8 fichas | ✅ concluída |
 | **Fatia 3** | **✅ as 12 práticas, validação completa ligada** |
-| 8 — Fechamento | ⏳ |
+| 8 — Fechamento | ✅ concluída |
+| **Fatia 4** | **✅ README, suíte de testes e Inspector verificado** |
 
 Fatia 1 integrada ao `master` pelo PR #1. Etapas seguintes em branch novo a partir dele.
+
+**O que ainda depende do grupo**, não de código: as quatro decisões da seção
+"Itens em aberto" do `DECISOES.md` (`documental_extensa`, o ajuste 5 e DD5, `"não sei"`
+como pendente ou indeterminada, e a fundamentação fraca de RP5), mais a revisão do texto
+das 12 fichas. E a **fase de teste**, que você definiu como escopo separado.
 
 ```
 pyproject.toml    uv, requires-python >=3.12
@@ -287,19 +293,30 @@ e `proxima_acao`. As pontuações não — são transcrição.
 
 ---
 
-# Fatia 4 — Fechamento
+# Fatia 4 — Fechamento ✅
 
-## Etapa 8
+## Etapa 8 ✅
 
-`README.md` com o caminho completo: instalar, colocar PDF em `literatura/`, rodar
-`indexar.py`, abrir o Inspector, e o trecho de `claude_desktop_config.json` já com
-`uv --directory`.
+**Feito.** `README.md` com o caminho completo — instalar, colocar PDF em `literatura/`,
+gerar o índice, abrir o Inspector e o trecho de `claude_desktop_config.json` com
+`uv --directory` —, mais uma seção sobre como editar a base sem tocar em código.
 
-`DECISOES.md` revisado com o que de fato ficou de pé.
+`DECISOES.md` revisado: item aberto 1 (referências) resolvido, e duas divergências novas,
+a 11 e a 12.
 
-Commits em português, um por etapa.
+**Suíte de testes**, que não estava no plano original e passou a estar: `pytest` como
+dependência de dev, `test_nucleo.py` e `test_base.py`, **88 testes**. Dois deles são trava
+de contrato, não só verificação — a Tabela 3 escrita à mão, e a exigência de que toda
+referência termine em `[literatura/]`.
 
-Tamanho: pequeno.
+**Inspector aberto e verificado**, e foi ele que pagou a etapa: `uv run mcp dev servidor.py`
+não subia, porque o comando procura um objeto global chamado `mcp`, `server` ou `app` e o
+nosso se chama `servidor`. O teste por stdio nunca pegaria isso, porque executa
+`uv run servidor.py` direto. Corrigido com um apelido (`DECISOES.md`, item 12).
+
+Na tela: as 11 operações listadas nas três abas, o prompt `coletar_requisitos` executando
+com o texto certo, e `gerar_plano_acao` respondendo em 355 ms com o plano priorizado, os
+ajustes aplicados, as lacunas e o registro em markdown.
 
 ---
 

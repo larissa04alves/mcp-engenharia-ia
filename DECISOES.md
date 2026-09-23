@@ -133,6 +133,24 @@ No teste com o índice completo, a busca por RP2 devolveu a página 39 do Kalino
 lista bibliográfica. Citar uma lista de referências como fundamentação não faz sentido.
 Custo aceito: apêndices que vêm depois das referências também ficam de fora.
 
+### 12. Apelido `server` em `servidor.py`
+
+`servidor.py` termina com uma linha que parece supérflua:
+
+```python
+server = servidor
+```
+
+`mcp dev` e `mcp run` procuram um objeto global chamado `mcp`, `server` ou `app`. Como o
+nosso se chama `servidor`, o comando que o próprio `mcp-engenharia-ia.md` documenta —
+`mcp dev servidor.py` — falhava com *"No server object found"*, e só funcionava na forma
+`servidor.py:servidor`.
+
+O apelido faz o comando documentado funcionar sem renomear o objeto nem obrigar o grupo a
+decorar uma sintaxe extra. Descoberto ao abrir o Inspector pela primeira vez: o teste por
+stdio não pegava, porque ele executa `uv run servidor.py` direto e não passa pela
+descoberta do objeto.
+
 ---
 
 ## Confirmações (não são divergências)
