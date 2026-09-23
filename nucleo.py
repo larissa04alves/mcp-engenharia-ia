@@ -125,8 +125,7 @@ def selecionar_praticas(base: Base, entrada: dict) -> dict:
     }
 
 
-# Recebe a ficha e devolve trechos {"texto", "fonte"}. Fica de fora da pontuação por construção:
-# roda depois de P e nível já calculados, e o núcleo não depende do índice para funcionar.
+# Recebe a ficha e devolve trechos {"texto", "fonte"}. 
 Fundamentar = Callable[[dict], list[dict]]
 
 
@@ -280,7 +279,7 @@ def _bloco_pratica(posicao: int, item: dict) -> list[str]:
         linhas.append(f"**Ajuste:** {ajuste['descricao']} — {criterio} {ajuste['de']} → {ajuste['para']}")
 
     for trecho in item.get("fundamentacao", []):
-        linhas += ["", f"📚 **Fundamentação:** “{trecho['texto']}”", f"   Fonte: {trecho['fonte']}"]
+        linhas += ["", f"**Fundamentação:** “{trecho['texto']}”", f"   Fonte: {trecho['fonte']}"]
 
     linhas += ["", f"**Referências:** {'; '.join(item['referencias'])}", ""]
     return linhas
