@@ -288,19 +288,25 @@ def _bloco_pratica(posicao: int, item: dict) -> list[str]:
     return linhas
 
 
+EXEMPLO = {
+    # contexto
+    "tipo_problema": "classificação",
+    "tamanho_equipe": 3,
+    "estagio": "concepcao",
+    "dados_sensiveis": True,
+    # campos de prática
+    "objetivo": "Prever quais alunos correm risco de evasão no semestre seguinte.",
+    "registro_decisoes": "não temos",
+    "qualidade_dados": False,
+}
+
+
 if __name__ == "__main__":
+    # uv run nucleo.py [entrada.json] — sem argumento, roda o EXEMPLO.
+    import json
+    import sys
+    from pathlib import Path
+
+    entrada = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8")) if len(sys.argv) > 1 else EXEMPLO
     base = carregar()
-
-    exemplo = {
-        # contexto
-        "tipo_problema": "classificação",
-        "tamanho_equipe": 3,
-        "estagio": "concepcao",
-        "dados_sensiveis": True,
-        # campos de prática
-        "objetivo": "Prever quais alunos correm risco de evasão no semestre seguinte.",
-        "registro_decisoes": "não temos",
-        "qualidade_dados": False,
-    }
-
-    print(render_registro(base, analisar(base, exemplo)))
+    print(render_registro(base, analisar(base, entrada)))
