@@ -7,3 +7,8 @@ dependencies = [
     "mcp[cli]>=2.2.0",
     "pypdf>=6.19.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

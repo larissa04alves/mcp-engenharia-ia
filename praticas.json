@@ -90,9 +90,9 @@
         "requirements engineering for ML"
       ],
       "referencias": [
-        "MARTÍNEZ-FERNÁNDEZ et al. (2022). Software Engineering for AI-Based Systems: A Survey. ACM TOSEM 31(2). [portfólio PBL1, 4.1]",
-        "NAHAR et al. (2023). A Meta-Summary of Challenges in Building Products with ML Components. CAIN 2023. arXiv:2304.00078 [portfólio PBL1, 4.4]",
-        "KALINOWSKI et al. (2025). Naming the Pain in Machine Learning-Enabled Systems Engineering. JSS. arXiv:2406.04359 [portfólio PBL1, 4.7]"
+        "ROMAO et al. (2026). Applying a Requirements-Focused Agile Management Approach for Machine Learning-Enabled Systems. arXiv:2602.05042 [literatura/]",
+        "KALINOWSKI et al. (2025). Naming the Pain in Machine Learning-Enabled Systems Engineering. JSS. arXiv:2406.04359 [literatura/]",
+        "PENG; HEYN; HORKOFF (2025). From Machine Learning Documentation to Requirements: Bridging Processes with Requirements Languages. arXiv:2511.15340 [literatura/]"
       ]
     },
     {
@@ -199,7 +199,7 @@
         "team process and accountability"
       ],
       "referencias": [
-        "KREUZBERGER; KÜHL; HIRSCHL (2023). Machine Learning Operations (MLOps): Overview, Definition, and Architecture. IEEE Access 11. [literatura/]",
+        "KREUZBERGER; KÜHL; HIRSCHL (2023). Machine Learning Operations (MLOps): Overview, Definition, and Architecture. IEEE Access 11. arXiv:2205.02302 [literatura/]",
         "ROMAO et al. (2026). Applying a Requirements-Focused Agile Management Approach for Machine Learning-Enabled Systems. arXiv:2602.05042 [literatura/]",
         "SERBAN et al. (2021). Practices for Engineering Trustworthy Machine Learning Applications. arXiv:2103.00964 [literatura/]"
       ]
@@ -226,9 +226,9 @@
         "decision rationale and alternatives"
       ],
       "referencias": [
-        "NAZIR; BUCAIONI; PELLICCIONE (2024). Architecting ML-Enabled Systems: Challenges, Best Practices, and Design Decisions. JSS 207, 111860. [portfólio PBL1, 4.5]",
-        "NAHAR et al. (2023). A Meta-Summary of Challenges in Building Products with ML Components. CAIN 2023. arXiv:2304.00078 [portfólio PBL1, 4.4]",
-        "WU (2024). An Exploratory Study of V-Model in Building ML-Enabled Software. CAIN 2024. arXiv:2308.05381 [portfólio PBL1, 4.8]"
+        "NYGARD (2011). Documenting Architecture Decisions. Cognitect, 15 nov. 2011. [literatura/]",
+        "SERBAN et al. (2021). Practices for Engineering Trustworthy Machine Learning Applications. arXiv:2103.00964 [literatura/]",
+        "KALINOWSKI et al. (2025). Naming the Pain in Machine Learning-Enabled Systems Engineering. JSS. arXiv:2406.04359 [literatura/]"
       ]
     },
     {
@@ -254,9 +254,9 @@
         "where the data comes from"
       ],
       "referencias": [
-        "PALEYES; URMA; LAWRENCE (2023). Challenges in Deploying Machine Learning: A Survey of Case Studies. ACM Computing Surveys 55(6). arXiv:2011.09926 [portfólio PBL1, 4.3]",
-        "NAHAR et al. (2023). A Meta-Summary of Challenges in Building Products with ML Components. CAIN 2023. arXiv:2304.00078 [portfólio PBL1, 4.4]",
-        "KREUZBERGER; KÜHL; HIRSCHL (2023). Machine Learning Operations (MLOps): Overview, Definition, and Architecture. IEEE Access 11. arXiv:2205.02302 [portfólio PBL1, 4.2]"
+        "GEBRU et al. (2021). Datasheets for Datasets. arXiv:1803.09010 [literatura/]",
+        "ROH; HEO; WHANG (2018). A Survey on Data Collection for Machine Learning: a Big Data - AI Integration Perspective. arXiv:1811.03402 [literatura/]",
+        "HOLLAND et al. (2018). The Dataset Nutrition Label: A Framework To Drive Higher Data Quality Standards. Rascunho, maio de 2018. [literatura/]"
       ]
     },
     {
@@ -336,9 +336,9 @@
         "data quality checks"
       ],
       "referencias": [
-        "MARTÍNEZ-FERNÁNDEZ et al. (2022). Software Engineering for AI-Based Systems: A Survey. ACM TOSEM 31(2). [portfólio PBL1, 4.1]",
-        "PALEYES; URMA; LAWRENCE (2023). Challenges in Deploying Machine Learning: A Survey of Case Studies. ACM Computing Surveys 55(6). arXiv:2011.09926 [portfólio PBL1, 4.3]",
-        "NAHAR et al. (2023). A Meta-Summary of Challenges in Building Products with ML Components. CAIN 2023. arXiv:2304.00078 [portfólio PBL1, 4.4]"
+        "BRECK et al. (2019). Data Validation for Machine Learning. SysML 2019. [literatura/]",
+        "POLYZOTIS et al. (2017). Data Management Challenges in Production Machine Learning. Tutorial, SIGMOD 2017. [literatura/]",
+        "HOLLAND et al. (2018). The Dataset Nutrition Label: A Framework To Drive Higher Data Quality Standards. Rascunho, maio de 2018. [literatura/]"
       ]
     },
     {

@@ -153,18 +153,34 @@ Ficam registradas porque foram examinadas e mantidas de propósito.
 
 ## Itens em aberto
 
-### 1. Referências das fichas não batem com `literatura/`
+### 1. Referências das fichas ✅ resolvido
 
-A literatura foi escolhida: 16 PDFs e um `.md`. Mas as 4 fichas citam Martínez-Fernández
-(2022), Nahar (2023), Nazir (2024) e Wu (2024), que não estão na pasta, e as citações do
-RAG vêm de artigos que as fichas não listam em `referencias`. O grupo decide se as
-`referencias` passam a refletir a pasta ou se os artigos citados entram nela.
+**Decisão: as `referencias` refletem `literatura/`.** As 12 fichas citam apenas artigos
+que estão na pasta, todas com o marcador `[literatura/]`. O marcador `[portfólio PBL1, 4.x]`
+não existe mais no arquivo, e `test_base.py` trava a regra: qualquer referência que não
+termine em `[literatura/]` quebra a suíte.
 
-As 8 fichas da etapa 7 já seguem a primeira opção: citam só artigos que estão em
-`literatura/`, com o marcador `[literatura/]` — os dados bibliográficos saíram dos
-próprios PDFs. As 4 fichas da fatia 1 continuam com o marcador `[portfólio PBL1, 4.x]`
-até o grupo decidir. Se a decisão for manter a regra "só portfólio", as 8 novas precisam
-ser revistas.
+Três das citações antigas na verdade já estavam na pasta, só marcadas errado — Kalinowski
+(`naming_the_pain…`), Paleyes (`challenges_in_deploying…`) e Kreuzberger (`…MLOps…`).
+As lacunas reais eram quatro autorias, trocadas assim:
+
+| ficha | antes (fora da pasta) | agora |
+|---|---|---|
+| RP1 | Martínez-Fernández, Nahar | Romao, Kalinowski, Peng |
+| RP6 | Nazir, Nahar, Wu | **Nygard**, Serban, Kalinowski |
+| DD1 | Nahar | Gebru, Roh, Holland |
+| DD4 | Martínez-Fernández, Nahar | Breck, Polyzotis, Holland |
+
+Isso importava porque o mesmo bloco de saída trazia `Fonte:` vindo da pasta e
+`Referências:` vindo do portfólio — duas bibliografias sem relação entre si.
+
+**Consequência:** o portfólio do PBL1 deixa de ser a fonte das referências das fichas.
+Ele continua sendo o levantamento bibliográfico do grupo; quem quiser um artigo dele
+citado numa ficha precisa colocar o PDF em `literatura/` e reindexar.
+
+**Sobra um arquivo sem uso:** `an_architectural_risk_analysis_of_machine_learning.pdf`
+está indexado mas nenhuma ficha o cita — é o único da pasta nessa situação. O tema
+(risco e segurança) não tem prática correspondente entre as 12.
 
 ### 2. `documental_extensa` em RP6, DD2, DD3 e DD6
 
