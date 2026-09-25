@@ -138,23 +138,51 @@ retomar, basta abrir a conversa com ele — "aqui está a análise anterior, o q
 que agora documentamos os dados" — e o assistente refaz a análise com os campos
 atualizados.
 
-### Consultar a base sem fazer análise
+### As 11 operações do servidor
 
-Três resources ficam disponíveis no menu de anexos, ou por pedido direto ao assistente
-("mostra a ficha da DD2"):
+Tudo o que o assistente consegue chamar. As **tools** são as funções que ele executa na
+ordem do fluxo; os **resources** são conteúdo só de leitura; os **prompts** são roteiros
+de perguntas que o usuário escolhe no menu de anexos.
 
-| Resource                  | O que devolve                                                                   |
-| ------------------------- | ------------------------------------------------------------------------------- |
-| `praticas://catalogo`     | as 12 práticas, por grupo                                                       |
-| `praticas://RP3`          | a ficha completa de uma prática: condições, pontuações, orientação, referências |
-| `criterios://priorizacao` | critérios, escala, fórmula, faixas e os 5 ajustes de contexto                   |
+| Tipo     | Nome                      | O que recebe                        | O que faz e devolve                                                                                                  |
+| -------- | ------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| tool     | `identificar_contexto`    | os campos do projeto                | normaliza tipo de problema, tamanho da equipe, estágio e dados sensíveis; diz quais dos 5 ajustes de contexto se aplicam |
+| tool     | `selecionar_praticas`     | os campos do projeto                | classifica cada uma das 12 práticas em **atendida**, **pendente** ou **indeterminada**; para as indeterminadas, devolve a pergunta a fazer à equipe |
+| tool     | `priorizar_praticas`      | ids das pendentes + campos          | aplica os ajustes, calcula `P = I + N + D + (4 − E)`, classifica em Essencial / Recomendada / Evolução, ordena e anexa até 2 trechos da literatura por prática |
+| tool     | `gerar_plano_acao`        | os campos do projeto                | roda as três etapas acima de uma vez e devolve o plano completo mais o **registro em markdown** para a equipe salvar    |
+| resource | `praticas://catalogo`     | nada                                | as 12 práticas, por grupo                                                                                             |
+| resource | `praticas://{id}`         | id da prática (ex.: `RP3`)          | a ficha completa: condições, pontuações, orientação, próxima ação, referências                                        |
+| resource | `criterios://priorizacao` | nada                                | critérios, escala, fórmula, faixas e os 5 ajustes de contexto                                                         |
+| prompt   | `coletar_projeto`         | nada                                | roteiro com as 4 perguntas sobre o projeto: objetivo, tipo, equipe, estágio                                           |
+| prompt   | `coletar_requisitos`      | nada                                | roteiro com as 5 perguntas sobre requisitos, critérios de sucesso, restrições, responsabilidades e decisões           |
+| prompt   | `coletar_dados`           | nada                                | roteiro com as 7 perguntas sobre fonte, documentação, características, qualidade, problemas, organização e sensibilidade |
+| prompt   | `conduzir_analise`        | nada                                | roteiro completo: encadeia os três blocos de perguntas e as quatro tools, na ordem, até o plano de ação               |
 
-Os prompts `coletar_projeto`, `coletar_requisitos` e `coletar_dados` são os três blocos
-de perguntas separados, para quem quer conduzir um bloco de cada vez.
+Cada tool devolve também um campo `proximo_passo` dizendo ao assistente o que chamar em
+seguida. Os resources ficam no menu de anexos ou saem por pedido direto ("mostra a ficha
+da DD2"). Os três prompts `coletar_*` servem para quem quer conduzir um bloco de cada vez.
 
 ---
 
 ## Para quem desenvolve
+
+### Tecnologias
+
+| Tecnologia                           | Versão | Para que serve aqui                                                                                   |
+| ------------------------------------ | ------ | ----------------------------------------------------------------------------------------------------- |
+| Python                               | 3.12   | linguagem do servidor                                                                                 |
+| [uv](https://docs.astral.sh/uv/)     | —      | instala o Python e as dependências e roda os scripts; é o comando que o assistente usa para subir o servidor |
+| `mcp` (SDK oficial, `MCPServer`)     | 2.2.0  | transforma as funções de `servidor.py` em tools, resources e prompts e cuida do protocolo JSON-RPC por stdio |
+| `pydantic`                           | 2.13   | define os 16 campos de entrada (`Projeto`) e gera o schema que o assistente vê                       |
+| `chromadb`                           | 1.5.9  | banco vetorial embutido: guarda os trechos da literatura em `indice/` e faz a busca por similaridade  |
+| `onnxruntime` + all-MiniLM-L6-v2     | 1.30   | modelo de embedding padrão do ChromaDB; baixado uma vez (~80 MB) e roda offline                      |
+| `pypdf`                              | 6.19   | extrai o texto dos PDFs em `literatura/` na hora de indexar                                           |
+| `pytest`                             | 9.1    | suíte de testes (`uv run pytest`)                                                                     |
+| `ruff`                               | 0.16   | lint e formatação (`uv run ruff check .`)                                                             |
+| MCP Inspector (`mcp dev`)            | —      | interface web para testar cada operação isoladamente                                                  |
+
+Não há framework web, banco de dados externo nem chamada a modelo de linguagem: a
+priorização é regra fixa em `nucleo.py`, e o único modelo que roda é o de embedding.
 
 ### Inspector
 
