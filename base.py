@@ -13,7 +13,8 @@ CAMPOS_CONTEXTO = ("tipo_problema", "tamanho_equipe", "estagio", "dados_sensivei
 
 CHAVES_TOPO = ("versao", "cobertura", "criterios", "escala", "formula", "faixas", "ajustes", "praticas")
 TEXTOS_PRATICA = ("id", "grupo", "nome", "campo", "descricao", "pergunta", "orientacao", "proxima_acao")
-ESTADOS = ("atendida", "pendente", "indeterminada")
+SITUACOES = ("suficiente", "insuficiente", "inexistente", "nao_verificado")
+CONDICOES = (*SITUACOES, "indeterminada")
 LISTAS_PRATICA = ("termos_busca", "referencias")
 
 OPERADORES = ("igual", "ate", "preenchido")
@@ -166,9 +167,9 @@ def _validar_praticas(praticas, completa: bool) -> list[str]:
         if not isinstance(condicoes, dict):
             problemas.append(f"{onde} — condicoes ausente")
         else:
-            for estado in ESTADOS:
-                if not _texto(condicoes.get(estado)):
-                    problemas.append(f"{onde} — condicoes.{estado} ausente ou vazio")
+            for chave in CONDICOES:
+                if not _texto(condicoes.get(chave)):
+                    problemas.append(f"{onde} — condicoes.{chave} ausente ou vazio")
 
         pontuacoes = pratica.get("pontuacoes")
         if not isinstance(pontuacoes, dict):

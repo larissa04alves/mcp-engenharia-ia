@@ -1,5 +1,5 @@
 {
-  "versao": "1.0",
+  "versao": "2.0",
   "cobertura": "completa",
 
   "criterios": {
@@ -75,8 +75,10 @@
       "documental_extensa": false,
       "descricao": "O objetivo declara qual problema o sistema resolve e para quem, em uma frase que a equipe inteira consiga repetir sem consultar documento.",
       "condicoes": {
-        "atendida": "A equipe informou o objetivo do sistema.",
-        "pendente": "A equipe declarou que o objetivo ainda não foi definido.",
+        "suficiente": "A equipe informou o objetivo do sistema.",
+        "insuficiente": "A equipe tem um objetivo, mas o considera vago ou incompleto.",
+        "inexistente": "A equipe declarou que o objetivo ainda não foi definido.",
+        "nao_verificado": "A equipe ainda não verificou se o objetivo do sistema está definido.",
         "indeterminada": "O objetivo não foi informado e ninguém perguntou ainda."
       },
       "pergunta": "Qual problema esse sistema precisa resolver, e para quem?",
@@ -103,8 +105,10 @@
       "documental_extensa": false,
       "descricao": "Os requisitos do sistema estão listados — o que ele deve fazer e as qualidades que precisa ter — incluindo os que dizem respeito aos dados e ao modelo, não só ao software em volta.",
       "condicoes": {
-        "atendida": "A equipe informou os requisitos identificados.",
-        "pendente": "A equipe declarou que os requisitos ainda não foram identificados.",
+        "suficiente": "A equipe informou os requisitos identificados.",
+        "insuficiente": "A equipe identificou parte dos requisitos, mas considera a lista incompleta.",
+        "inexistente": "A equipe declarou que os requisitos ainda não foram identificados.",
+        "nao_verificado": "A equipe ainda não verificou quais requisitos o sistema tem.",
         "indeterminada": "Os requisitos não foram informados e ninguém perguntou ainda."
       },
       "pergunta": "Quais requisitos do sistema vocês já identificaram?",
@@ -130,8 +134,10 @@
       "documental_extensa": false,
       "descricao": "Está definido como a equipe vai saber que o sistema funciona: qual métrica, qual valor mínimo e medido em quais dados.",
       "condicoes": {
-        "atendida": "A equipe informou a métrica e o valor que contam como sucesso.",
-        "pendente": "A equipe declarou que não há critério de sucesso definido.",
+        "suficiente": "A equipe informou a métrica e o valor que contam como sucesso.",
+        "insuficiente": "A equipe tem um critério de sucesso, mas o considera incompleto.",
+        "inexistente": "A equipe declarou que não há critério de sucesso definido.",
+        "nao_verificado": "A equipe ainda não verificou qual métrica e qual valor contam como sucesso.",
         "indeterminada": "Os critérios de sucesso não foram informados e ninguém perguntou ainda."
       },
       "pergunta": "Como vocês vão saber que o sistema está bom o suficiente? Que métrica e que valor contam como sucesso?",
@@ -157,8 +163,10 @@
       "documental_extensa": false,
       "descricao": "As restrições do projeto estão identificadas: prazo, custo, exigências legais e regulatórias e limites técnicos, como tempo de resposta e onde o modelo vai rodar.",
       "condicoes": {
-        "atendida": "A equipe informou as restrições do projeto.",
-        "pendente": "A equipe declarou que as restrições não foram levantadas.",
+        "suficiente": "A equipe informou as restrições do projeto.",
+        "insuficiente": "A equipe levantou parte das restrições, mas considera o levantamento incompleto.",
+        "inexistente": "A equipe declarou que as restrições não foram levantadas.",
+        "nao_verificado": "A equipe ainda não verificou quais restrições o projeto tem.",
         "indeterminada": "As restrições não foram informadas e ninguém perguntou ainda."
       },
       "pergunta": "Que restrições o projeto tem — prazo, custo, exigências legais ou limites técnicos?",
@@ -185,8 +193,10 @@
       "documental_extensa": false,
       "descricao": "Cada integrante sabe pelo que responde — dados, modelo, integração, decisões — e quem decide quando há impasse.",
       "condicoes": {
-        "atendida": "A equipe informou quem é responsável por cada parte do projeto.",
-        "pendente": "A equipe declarou que as responsabilidades não estão definidas.",
+        "suficiente": "A equipe informou quem é responsável por cada parte do projeto.",
+        "insuficiente": "As responsabilidades estão definidas só em parte, e a equipe considera isso insuficiente.",
+        "inexistente": "A equipe declarou que as responsabilidades não estão definidas.",
+        "nao_verificado": "A equipe ainda não verificou quem responde por cada parte do projeto.",
         "indeterminada": "As responsabilidades não foram informadas e ninguém perguntou ainda."
       },
       "pergunta": "Quem na equipe cuida de cada parte do projeto — dados, modelo, integração?",
@@ -212,8 +222,10 @@
       "documental_extensa": true,
       "descricao": "As escolhas do projeto — de dado, de técnica, de arquitetura, e o que foi descartado — ficam num registro que a equipe consulta e que sobrevive à saída de quem decidiu.",
       "condicoes": {
-        "atendida": "A equipe informou onde as decisões do projeto são registradas.",
-        "pendente": "A equipe declarou que não mantém registro de decisões.",
+        "suficiente": "A equipe informou onde as decisões do projeto são registradas.",
+        "insuficiente": "A equipe registra parte das decisões, mas considera o registro insuficiente.",
+        "inexistente": "A equipe declarou que não mantém registro de decisões.",
+        "nao_verificado": "A equipe ainda não verificou se as decisões do projeto ficam registradas.",
         "indeterminada": "O registro de decisões não foi informado e ninguém perguntou ainda."
       },
       "pergunta": "Onde vocês registram as decisões do projeto e o motivo de cada uma?",
@@ -239,8 +251,10 @@
       "documental_extensa": false,
       "descricao": "A origem dos dados está identificada: de onde vêm, quem os produz e em que período foram coletados.",
       "condicoes": {
-        "atendida": "A equipe informou a fonte dos dados.",
-        "pendente": "A equipe declarou que a origem dos dados não está identificada.",
+        "suficiente": "A equipe informou a fonte dos dados.",
+        "insuficiente": "A equipe conhece a fonte dos dados só em parte e considera isso insuficiente.",
+        "inexistente": "A equipe declarou que a origem dos dados não está identificada.",
+        "nao_verificado": "A equipe ainda não verificou de onde vêm os dados.",
         "indeterminada": "A fonte dos dados não foi informada e ninguém perguntou ainda."
       },
       "pergunta": "De onde vêm os dados que vocês usam?",
@@ -267,8 +281,10 @@
       "documental_extensa": true,
       "descricao": "Existe um documento que explica o conjunto de dados para quem não o criou: por que foi coletado, o que contém, como foi obtido e para que pode ou não ser usado.",
       "condicoes": {
-        "atendida": "A equipe informou a documentação existente dos dados.",
-        "pendente": "A equipe declarou que os dados não estão documentados.",
+        "suficiente": "A equipe informou a documentação existente dos dados.",
+        "insuficiente": "Existe alguma documentação dos dados, mas a equipe a considera insuficiente.",
+        "inexistente": "A equipe declarou que os dados não estão documentados.",
+        "nao_verificado": "A equipe ainda não verificou se os dados têm documentação.",
         "indeterminada": "A documentação dos dados não foi informada e ninguém perguntou ainda."
       },
       "pergunta": "Existe algum documento que descreva os dados que vocês usam?",
@@ -295,8 +311,10 @@
       "documental_extensa": true,
       "descricao": "As características dos dados estão registradas: volume, formato, período coberto, variáveis e o que cada instância representa.",
       "condicoes": {
-        "atendida": "A equipe informou as características dos dados.",
-        "pendente": "A equipe declarou que as características dos dados não estão registradas.",
+        "suficiente": "A equipe informou as características dos dados.",
+        "insuficiente": "As características dos dados estão registradas só em parte, e a equipe considera isso insuficiente.",
+        "inexistente": "A equipe declarou que as características dos dados não estão registradas.",
+        "nao_verificado": "A equipe ainda não verificou as características dos dados.",
         "indeterminada": "As características dos dados não foram informadas e ninguém perguntou ainda."
       },
       "pergunta": "Qual o volume, o formato e o período dos dados, e quais variáveis eles têm?",
@@ -321,8 +339,10 @@
       "documental_extensa": false,
       "descricao": "Os dados passaram por verificação antes do uso: valores ausentes, duplicatas, faixas inválidas e desequilíbrio entre classes.",
       "condicoes": {
-        "atendida": "A equipe informou que verificações de qualidade foram feitas nos dados.",
-        "pendente": "A equipe declarou que os dados não passaram por verificação de qualidade.",
+        "suficiente": "A equipe informou que verificações de qualidade foram feitas nos dados.",
+        "insuficiente": "A equipe fez algumas verificações de qualidade nos dados, mas as considera insuficientes.",
+        "inexistente": "A equipe declarou que os dados não passaram por verificação de qualidade.",
+        "nao_verificado": "A equipe ainda não verificou a qualidade dos dados.",
         "indeterminada": "As verificações de qualidade não foram informadas e ninguém perguntou ainda."
       },
       "pergunta": "Que verificações de qualidade vocês já fizeram nos dados?",
@@ -349,8 +369,10 @@
       "documental_extensa": false,
       "descricao": "Os problemas conhecidos dos dados estão anotados — lacunas, vieses, ruído, períodos faltantes — junto com o efeito que podem ter no modelo.",
       "condicoes": {
-        "atendida": "A equipe informou problemas ou limitações conhecidos nos dados.",
-        "pendente": "A equipe declarou que não levantou problemas ou limitações dos dados.",
+        "suficiente": "A equipe informou problemas ou limitações conhecidos nos dados.",
+        "insuficiente": "A equipe conhece parte dos problemas e limitações dos dados, mas considera o levantamento incompleto.",
+        "inexistente": "A equipe declarou que não levantou problemas ou limitações dos dados.",
+        "nao_verificado": "A equipe ainda não analisou se os dados têm problemas ou limitações.",
         "indeterminada": "Problemas e limitações dos dados não foram informados e ninguém perguntou ainda."
       },
       "pergunta": "Que problemas ou limitações vocês já conhecem nos dados?",
@@ -375,8 +397,10 @@
       "documental_extensa": true,
       "descricao": "As informações sobre os dados — versões, origem, documentação e transformações aplicadas — ficam num lugar conhecido e organizado, não espalhadas.",
       "condicoes": {
-        "atendida": "A equipe informou como as informações dos dados estão organizadas.",
-        "pendente": "A equipe declarou que as informações dos dados não estão organizadas.",
+        "suficiente": "A equipe informou como as informações dos dados estão organizadas.",
+        "insuficiente": "As informações dos dados estão organizadas só em parte, e a equipe considera isso insuficiente.",
+        "inexistente": "A equipe declarou que as informações dos dados não estão organizadas.",
+        "nao_verificado": "A equipe ainda não verificou como as informações dos dados estão organizadas.",
         "indeterminada": "A organização das informações dos dados não foi informada e ninguém perguntou ainda."
       },
       "pergunta": "Onde ficam hoje as informações sobre os dados — versões, documentação, transformações?",

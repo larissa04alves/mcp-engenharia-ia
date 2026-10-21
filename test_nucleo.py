@@ -17,74 +17,29 @@ from nucleo import (
 
 BASE = carregar()
 
-NEGACOES = [
-    "não",
-    "NÃO",
-    "nao",
-    "não temos",
-    "não fazemos",
-    "não fizemos",
-    "não definimos",
-    "não há",
-    "não existe",
-    "não possui",
-    "não foi feito",
-    "não sei",
-    "ainda não",
-    "ainda não fizemos",
-    "por enquanto não",
-    "até agora não fizemos",
-    "no momento não temos",
-    "nunca fizemos isso",
-    "jamais foi registrado",
-    "nenhum",
-    "nenhuma",
-    "nenhumas",
-    "inexistente",
-    "ausente",
-]
 
-VAZIOS = ["", "   ", "-", "--", "n/a", "N/A", "nada"]
-
-CONTEUDOS = [
-    "Prever quais alunos correm risco de evasão",
-    "Sistema acadêmico da universidade, matrículas de 2019 a 2025",
-    "Notion, uma página por decisão",
-    "F1 acima de 0,80 na classe minoritária",
-    "Ainda estamos coletando, mas já temos o esquema definido",
-]
-
-AMBIGUOS = [
-    "não temos processo formal, mas registramos tudo no Notion",
-    "não temos documentação escrita, usamos um README com origem e período",
-    "não existe um documento único, porem cada tabela tem um dicionário de dados",
-]
+def r(situacao: str, resposta: str | None = None) -> dict:
+    """Resposta de um campo de prática, como o servidor a entrega ao núcleo."""
+    return {"situacao": situacao} if resposta is None else {"situacao": situacao, "resposta": resposta}
 
 
-@pytest.mark.parametrize("texto", NEGACOES)
-def test_negacao_vira_pendente(texto):
-    assert estado_do_campo(texto) == "pendente"
+@pytest.mark.parametrize(
+    "situacao, estado",
+    [
+        ("suficiente", "atendida"),
+        ("insuficiente", "pendente"),
+        ("inexistente", "pendente"),
+        ("nao_verificado", "pendente"),
+    ],
+)
+def test_situacao_define_o_estado(situacao, estado):
+    assert estado_do_campo(r(situacao, "qualquer texto")) == estado
 
 
-@pytest.mark.parametrize("texto", VAZIOS)
-def test_vazio_vira_pendente(texto):
-    assert estado_do_campo(texto) == "pendente"
-
-
-@pytest.mark.parametrize("texto", CONTEUDOS)
-def test_conteudo_vira_atendida(texto):
-    assert estado_do_campo(texto) == "atendida"
-
-
-@pytest.mark.parametrize("texto", AMBIGUOS)
-def test_nega_e_emenda_vira_indeterminada(texto):
-    assert estado_do_campo(texto) == "indeterminada"
-
-
-def test_booleanos_e_ausencia():
-    assert estado_do_campo(True) == "atendida"
-    assert estado_do_campo(False) == "pendente"
-    assert estado_do_campo(None) == "indeterminada"
+@pytest.mark.parametrize("valor", [None, "não temos", "só o README", True, False, {"situacao": "talvez"}, {}])
+def test_sem_situacao_valida_vira_indeterminada(valor):
+    # O texto livre não decide mais nada: quem decide é a situacao.
+    assert estado_do_campo(valor) == "indeterminada"
 
 
 def test_campo_omitido_nao_vira_pendente():
@@ -95,9 +50,38 @@ def test_campo_omitido_nao_vira_pendente():
 
 
 def test_toda_pratica_cai_em_exatamente_um_estado():
-    selecao = selecionar_praticas(BASE, {"objetivo": "prever evasão", "fonte_dados": "não temos"})
+    selecao = selecionar_praticas(BASE, {"objetivo": r("suficiente", "prever evasão"), "fonte_dados": r("inexistente")})
     total = sum(len(selecao[chave]) for chave in ("atendidas", "pendentes", "indeterminadas"))
     assert total == len(BASE.praticas)
+
+
+def test_existe_mas_insuficiente_vai_para_o_plano_dizendo_que_existe():
+    selecao = selecionar_praticas(BASE, {"documentacao_dados": r("insuficiente", "só o README")})
+    [dd2] = selecao["pendentes"]
+    assert dd2["id"] == "DD2"
+    assert dd2["situacao"] == "insuficiente"
+    assert dd2["resposta"] == "só o README"
+    assert dd2["motivo"] == BASE.por_id["DD2"]["condicoes"]["insuficiente"]
+
+
+def test_nao_verificado_vira_etapa_do_plano():
+    entrada = {"problemas_limitacoes": r("nao_verificado", "não analisei se o banco tem limitação")}
+    analise = analisar(BASE, entrada)
+
+    assert [p["id"] for p in analise["selecao"]["a_verificar"]] == ["DD5"]
+    [dd5] = analise["plano"]
+    assert dd5["situacao"] == "nao_verificado"
+    assert dd5["resposta"] == "não analisei se o banco tem limitação"
+    assert dd5["proxima_acao"].startswith("Levantar o que ainda não foi verificado")
+    assert dd5["proxima_acao"].endswith(
+        "Depois: listar os problemas já percebidos nos dados e registrar a lista junto à documentação."
+    )
+    assert dd5["justificativa"].startswith(BASE.por_id["DD5"]["condicoes"]["nao_verificado"])
+
+
+def test_so_nao_verificado_entra_em_a_verificar():
+    entrada = {"requisitos": r("inexistente"), "documentacao_dados": r("insuficiente"), "objetivo": r("suficiente")}
+    assert selecionar_praticas(BASE, entrada)["a_verificar"] == []
 
 
 # verifica pontuações e níveis de prioridade
@@ -163,7 +147,11 @@ AJUSTES = [
     ("evolucao", {"estagio": "evolucao"}, {"estagio": "concepcao"}),
     ("equipe_pequena", {"tamanho_equipe": 3}, {"tamanho_equipe": 4}),
     ("dados_sensiveis", {"dados_sensiveis": True}, {"dados_sensiveis": False}),
-    ("problemas_relatados", {"problemas_limitacoes": "muitos ausentes"}, {"problemas_limitacoes": "nenhum"}),
+    (
+        "problemas_relatados",
+        {"problemas_limitacoes": r("suficiente", "muitos ausentes")},
+        {"problemas_limitacoes": r("inexistente", "nenhum")},
+    ),
 ]
 
 
@@ -171,6 +159,15 @@ AJUSTES = [
 def test_ajuste_dispara_so_na_condicao_certa(id_ajuste, dispara, nao_dispara):
     assert id_ajuste in {a["id"] for a in identificar_contexto(BASE, dispara)["ajustes"]}
     assert id_ajuste not in {a["id"] for a in identificar_contexto(BASE, nao_dispara)["ajustes"]}
+
+
+@pytest.mark.parametrize(
+    "situacao, dispara",
+    [("suficiente", True), ("insuficiente", True), ("inexistente", False), ("nao_verificado", False)],
+)
+def test_problemas_relatados_exige_que_a_equipe_tenha_relatado_algo(situacao, dispara):
+    ajustes = identificar_contexto(BASE, {"problemas_limitacoes": r(situacao, "texto")})["ajustes"]
+    assert ("problemas_relatados" in {a["id"] for a in ajustes}) is dispara
 
 
 def test_ajuste_atinge_apenas_o_alvo_declarado():
@@ -207,12 +204,17 @@ def test_ordem_por_pontuacao_decrescente_com_desempate_por_id():
 
 
 def test_mesma_entrada_produz_saida_identica():
-    entrada = {"estagio": "concepcao", "tamanho_equipe": 2, "objetivo": "prever evasão", "requisitos": False}
+    entrada = {
+        "estagio": "concepcao",
+        "tamanho_equipe": 2,
+        "objetivo": r("suficiente", "prever evasão"),
+        "requisitos": r("inexistente"),
+    }
     assert analisar(BASE, entrada) == analisar(BASE, entrada)
 
 
 def test_rag_nao_altera_a_pontuacao():
-    entrada = {"requisitos": False}
+    entrada = {"requisitos": r("inexistente")}
     sem = analisar(BASE, entrada)
     com = analisar(BASE, entrada, fundamentar=lambda ficha: [{"texto": "t", "fonte": "f.pdf, p. 1"}])
     assert [(i["id"], i["pontuacao"]) for i in sem["plano"]] == [(i["id"], i["pontuacao"]) for i in com["plano"]]
@@ -220,7 +222,12 @@ def test_rag_nao_altera_a_pontuacao():
 
 
 def test_registro_traz_as_secoes_e_o_calculo_aberto():
-    entrada = {"estagio": "concepcao", "tamanho_equipe": 3, "objetivo": "prever evasão", "requisitos": False}
+    entrada = {
+        "estagio": "concepcao",
+        "tamanho_equipe": 3,
+        "objetivo": r("suficiente", "prever evasão"),
+        "requisitos": r("inexistente"),
+    }
     registro = render_registro(BASE, analisar(BASE, entrada), quando=date(2026, 1, 15))
 
     for secao in (
@@ -238,7 +245,12 @@ def test_registro_traz_as_secoes_e_o_calculo_aberto():
 
 
 def test_registro_marca_ajuste_sem_efeito():
-    entrada = {"estagio": "concepcao", "tamanho_equipe": 2, "requisitos": False, "registro_decisoes": False}
+    entrada = {
+        "estagio": "concepcao",
+        "tamanho_equipe": 2,
+        "requisitos": r("inexistente"),
+        "registro_decisoes": r("inexistente"),
+    }
     registro = render_registro(BASE, analisar(BASE, entrada))
     assert "necessidade 3 (sem efeito: já no máximo)" in registro  # RP2 já tem necessidade 3
     assert "necessidade 1 → 2" in registro  # RP6 sobe de verdade
@@ -251,3 +263,30 @@ def test_justificativa_concorda_em_genero():
     assert "impacto alto" in justificativa
     assert "necessidade alta" in justificativa
     assert "dependência alta" in justificativa
+
+
+def test_registro_abre_com_os_pontos_a_verificar():
+    entrada = {
+        "problemas_limitacoes": r("nao_verificado", "não analisei se o banco tem limitação"),
+        "requisitos": r("inexistente"),
+    }
+    registro = render_registro(BASE, analisar(BASE, entrada))
+    secao = registro.index("## Pontos a verificar (1)")
+    assert secao < registro.index("## Contexto do projeto")
+    assert "**DD5 Identificar problemas e limitações** — “não analisei se o banco tem limitação”" in registro
+
+
+def test_registro_sem_pontos_a_verificar_diz_nenhum():
+    registro = render_registro(BASE, analisar(BASE, {"requisitos": r("inexistente")}))
+    assert "## Pontos a verificar (0)\n\nNenhum." in registro
+
+
+def test_registro_guarda_situacao_resposta_e_versao():
+    entrada = {
+        "objetivo": r("suficiente", "prever faltas para confirmar por WhatsApp"),
+        "documentacao_dados": r("insuficiente", "só o README"),
+    }
+    registro = render_registro(BASE, analisar(BASE, entrada))
+    assert f"Base de práticas v{BASE.versao}" in registro
+    assert "“prever faltas para confirmar por WhatsApp”" in registro
+    assert "**Situação:** existe, mas não é suficiente — “só o README”" in registro

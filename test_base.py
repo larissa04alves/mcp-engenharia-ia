@@ -87,6 +87,11 @@ def test_condicoes_incompletas(quebrar):
     assert problemas == ["RP1 — condicoes.indeterminada ausente ou vazio"]
 
 
+def test_condicoes_exigem_um_texto_por_situacao(quebrar):
+    problemas = quebrar(lambda d: d["praticas"][0]["condicoes"].pop("nao_verificado"))
+    assert problemas == ["RP1 — condicoes.nao_verificado ausente ou vazio"]
+
+
 def test_cobertura_completa_exige_as_doze(quebrar):
     problemas = quebrar(lambda d: d.__setitem__("praticas", d["praticas"][:4]))
     assert any("práticas ausentes" in p for p in problemas)

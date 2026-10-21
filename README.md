@@ -96,17 +96,20 @@ blocos — o projeto, os requisitos e os dados — num total de 16 perguntas. Ex
 - Onde as decisões do projeto ficam registradas?
 - De onde vêm os dados? Existe documentação deles?
 
-**Como responder.** Com o que a equipe sabe, sem enfeitar:
+**Como responder.** Com o que a equipe sabe, sem enfeitar. Para cada resposta, o
+assistente registra o texto da equipe e uma de quatro situações:
 
-| Se a equipe…       | Responda assim                                    | O servidor entende                    |
-| ------------------ | ------------------------------------------------- | ------------------------------------- |
-| já faz ou já tem   | descreva em uma frase                             | prática **atendida** — sai do plano   |
-| não faz ou não tem | diga claramente: "não temos", "ainda não fizemos" | prática **pendente** — entra no plano |
-| não sabe           | "não sei"                                         | pendente                              |
+| Se a equipe…                       | Situação         | O servidor entende                                                |
+| ---------------------------------- | ---------------- | ----------------------------------------------------------------- |
+| já faz ou já tem, e isso basta     | `suficiente`     | prática **atendida** — sai do plano                               |
+| tem algo, mas mínimo ou incompleto | `insuficiente`   | prática **pendente** — entra no plano, dizendo que algo já existe |
+| não faz ou não tem                 | `inexistente`    | prática **pendente** — entra no plano                             |
+| não sabe ou não analisou           | `nao_verificado` | prática **pendente** — entra no plano como algo a levantar        |
 
-Quando uma resposta fica ambígua ("não temos processo formal, mas anotamos no Notion"),
-o servidor devolve a pergunta e o assistente a refaz. Isso é esperado: ele prefere
-perguntar de novo a chutar.
+Quando a equipe diz que algo existe ("só o README"), o assistente pergunta se ela o
+considera suficiente antes de registrar. Um "não sei" nunca vira atendida. O ponto entra
+no plano, abre o registro na seção **Pontos a verificar** e o assistente volta a lembrá-lo
+ao apresentar o plano.
 
 Nos bastidores, o assistente chama quatro ferramentas nesta ordem, e cada uma diz a ele
 qual é a próxima:
@@ -129,8 +132,9 @@ a dizer isso em vez de reordenar.
 
 ### 4. Guardar o registro e retomar depois
 
-Junto com o plano vem um **registro em markdown** com tudo: contexto, ajustes, práticas
-atendidas, plano e lacunas. O assistente oferece salvá-lo num arquivo do repositório da
+Junto com o plano vem um **registro em markdown** com tudo: pontos a verificar, contexto,
+ajustes, práticas atendidas, plano e lacunas, com a resposta da equipe em cada prática e a
+versão da base de práticas. O assistente oferece salvá-lo num arquivo do repositório da
 equipe, por exemplo `docs/engenharia-ia.md`.
 
 **O servidor não guarda nada entre sessões.** Esse arquivo é a memória da análise: para
@@ -147,7 +151,7 @@ de perguntas que o usuário escolhe no menu de anexos.
 | Tipo     | Nome                      | O que recebe                        | O que faz e devolve                                                                                                  |
 | -------- | ------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | tool     | `identificar_contexto`    | os campos do projeto                | normaliza tipo de problema, tamanho da equipe, estágio e dados sensíveis; diz quais dos 5 ajustes de contexto se aplicam |
-| tool     | `selecionar_praticas`     | os campos do projeto                | classifica cada uma das 12 práticas em **atendida**, **pendente** ou **indeterminada**; para as indeterminadas, devolve a pergunta a fazer à equipe |
+| tool     | `selecionar_praticas`     | os campos do projeto                | classifica cada uma das 12 práticas em **atendida**, **pendente** ou **indeterminada** pela situação informada; para as indeterminadas, devolve a pergunta a fazer à equipe, e em `a_verificar` lista o que ela ainda não verificou |
 | tool     | `priorizar_praticas`      | ids das pendentes + campos          | aplica os ajustes, calcula `P = I + N + D + (4 − E)`, classifica em Essencial / Recomendada / Evolução, ordena e anexa até 2 trechos da literatura por prática |
 | tool     | `gerar_plano_acao`        | os campos do projeto                | roda as três etapas acima de uma vez e devolve o plano completo mais o **registro em markdown** para a equipe salvar    |
 | resource | `praticas://catalogo`     | nada                                | as 12 práticas, por grupo                                                                                             |
