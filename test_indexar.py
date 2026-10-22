@@ -1,6 +1,6 @@
 """Testes da leitura e divisão da literatura."""
 
-from indexar import SOBREPOSICAO, TAMANHO_PEDACO, TITULO_REFERENCIAS, _dividir, _limpar, _paginas
+from indexar import SOBREPOSICAO, TAMANHO_PEDACO, TITULO_REFERENCIAS, _dividir, _limpar, _paginas, ruido
 
 
 def test_limpar_junta_hifenacao_e_espacos():
@@ -51,3 +51,19 @@ def test_paginas_param_na_secao_de_referencias(tmp_path):
     assert numero == 1
     assert "Método." in texto
     assert "Alguém" not in texto
+
+
+def test_ruido_descarta_figura_rodape_e_numero_de_pagina():
+    figura = "Input (37.41 %) Data (33.09 %) Method (20.86 %) Data Complexity (0.72 %) Scope Definition (0.72 %)"
+    rodape = "GET IN TOUCH AUTHORS ALESSANDRA SIERRA ALEX MILLER CARIN MEIER DAVID CHELIMSKY DAVID NOLEN GHADI SHAYBAN"
+    assert ruido(figura)
+    assert ruido(rodape)
+    assert ruido("BIML 27")
+
+
+def test_ruido_mantem_prosa_mesmo_com_alguns_numeros():
+    prosa = (
+        "Datasheets for Datasets 5 3.2 Composition Dataset creators should read through these questions prior to "
+        "any data collection and then provide answers once collection is complete. How many instances are there?"
+    )
+    assert not ruido(prosa)

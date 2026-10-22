@@ -25,6 +25,11 @@ if not rag.indice_disponivel():
     )
     raise SystemExit(1)
 
+if ausentes := rag.citacoes_ausentes(BASE.praticas):
+    print("Citações que não estão no índice da literatura:", *ausentes, sep="\n  ", file=sys.stderr)
+    print("Confira o trecho e a página em praticas.json ou rode: uv run indexar.py", file=sys.stderr)
+    raise SystemExit(1)
+
 
 servidor = MCPServer(
     name="engenharia-ia",
@@ -107,7 +112,7 @@ class Projeto(BaseModel):
 
 
 def _fundamentar(pratica: dict) -> list[dict]:
-    return [{"texto": t.texto, "fonte": t.fonte()} for t in rag.buscar(pratica["termos_busca"])]
+    return [{"texto": t.texto, "fonte": t.fonte()} for c in pratica["citacoes"] if (t := rag.localizar(c))]
 
 
 def _resumo_ajuste(ajuste: dict) -> dict:

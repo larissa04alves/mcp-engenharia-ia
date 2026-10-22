@@ -70,7 +70,7 @@ Para cada prática pendente: prática, prioridade, justificativa, orientação e
 
 ### 3.6 Fundamentação pela literatura (RAG)
 
-A pedido do professor, as orientações e justificativas passam a ser fundamentadas por trechos dos artigos levantados no PBL1. Os fichamentos são indexados por embeddings em um banco vetorial local. Quando o servidor monta a orientação de uma prática, consulta o índice e anexa os trechos mais próximos, com a fonte. O RAG não participa da pontuação. A prioridade continua vindo exclusivamente da regra estruturada.
+A pedido do professor, as orientações e justificativas passam a ser fundamentadas por trechos dos artigos levantados no PBL1. Os artigos são indexados em um banco vetorial local. Cada prática traz os trechos que sustentam a sua orientação, escolhidos pela equipe, com arquivo e página. Ao subir, o servidor confere no índice que cada trecho está na página citada; quando monta a orientação, anexa esses trechos com a fonte. O RAG não participa da pontuação. A prioridade continua vindo exclusivamente da regra estruturada.
 
 ## 4. Arquitetura
 

@@ -85,11 +85,9 @@
       "pontuacoes": { "impacto": 3, "necessidade": 3, "dependencia": 3, "esforco": 1 },
       "orientacao": "Escrever em uma frase o problema que o sistema resolve e quem é atendido por ele, antes de escolher técnica ou conjunto de dados.",
       "proxima_acao": "Escrever a frase do objetivo e validá-la com quem vai usar o sistema.",
-      "termos_busca": [
-        "system goal",
-        "problem definition",
-        "business objective of the ML system",
-        "requirements engineering for ML"
+      "citacoes": [
+        {"arquivo": "naming_the_pain_in_machine_learning_enabled.pdf", "pagina": 5, "trecho": "Problem Understanding and Requirements. This phase involves defining the problem the ML-enabled system aims to solve. It requires understanding the domain, identifying stakeholders’ needs, and articulating precise project objectives. This stage sets the scope and direction of the entire project, requiring detailed documentation of requirements and expected outcomes."},
+        {"arquivo": "aplying_requirements_focused_agile_management_approach.pdf", "pagina": 2, "trecho": "System Objectives Perspective defines what the ML-enabled system aims to achieve and how success will be evaluated. It covers the functional goals, expected outputs, and performance indicators that connect business value to technical feasibility. This perspective ensures that ML use is justified by measurable system-level benefits and that trade-offs are made explicit."}
       ],
       "referencias": [
         "ROMAO et al. (2026). Applying a Requirements-Focused Agile Management Approach for Machine Learning-Enabled Systems. arXiv:2602.05042 [literatura/]",
@@ -115,10 +113,9 @@
       "pontuacoes": { "impacto": 3, "necessidade": 3, "dependencia": 3, "esforco": 2 },
       "orientacao": "Listar o que o sistema precisa fazer e as qualidades que precisa ter, separando os requisitos do software dos requisitos sobre dados e modelo.",
       "proxima_acao": "Montar a lista de requisitos conhecidos e marcar quais ainda estão em aberto.",
-      "termos_busca": [
-        "eliciting requirements with stakeholders",
-        "documenting requirements for the ML component",
-        "data and model requirements"
+      "citacoes": [
+        {"arquivo": "aplying_requirements_focused_agile_management_approach.pdf", "pagina": 4, "trecho": "The SW Backlog consolidates non–ML-intensive features, expressed using conventional agile requirements artifacts (e.g., User Stories). In contrast, the ML Backlog captures ML-intensive features, expressed through Model and Data Stories, which describe work related to data preparation, model development, evaluation, and deployment."},
+        {"arquivo": "non-functional-requirements-for-ml.pdf", "pagina": 5, "trecho": "The ML components may be surrounded by code focusing on configuration, data collection, feature extraction, analysis tools, or monitoring, as well as glue code to make everything work together. Further, as emphasized by Vogelsang & Borg, RE for ML should focus not only on requirements for the system, but on requirements over the data [56]."}
       ],
       "referencias": [
         "PENG; HEYN; HORKOFF (2025). From Machine Learning Documentation to Requirements: Bridging Processes with Requirements Languages. arXiv:2511.15340 [literatura/]",
@@ -144,15 +141,15 @@
       "pontuacoes": { "impacto": 3, "necessidade": 2, "dependencia": 2, "esforco": 2 },
       "orientacao": "Escolher a métrica que representa o objetivo do sistema e fixar o valor mínimo aceitável antes de treinar o primeiro modelo.",
       "proxima_acao": "Registrar a métrica, o valor mínimo e o conjunto de dados em que ela será medida.",
-      "termos_busca": [
-        "model performance measures and decision thresholds",
-        "evaluation metrics",
-        "acceptance criteria for the model"
+      "citacoes": [
+        {"arquivo": "model_cards_for_model_reporting.pdf", "pagina": 5, "trecho": "In all cases, the reported metrics should be determined based on the model’s structure and intended use. Details for this section include: Model performance measures: What measures of model performance are being reported, and why were they selected over other measures of model performance?"},
+        {"arquivo": "non-functional-requirements-for-ml.pdf", "pagina": 5, "trecho": "Berry presented how measures are used to evaluate an AI and the criteria for acceptable values of these measures [11]. He also showed how AI context information that informs the criteria and trade-offs in these measures, collectively constitute a requirements specification of an AI."}
       ],
       "referencias": [
         "MITCHELL et al. (2019). Model Cards for Model Reporting. FAT* '19. arXiv:1810.03993 [literatura/]",
         "KALINOWSKI et al. (2025). Naming the Pain in Machine Learning-Enabled Systems Engineering. JSS. arXiv:2406.04359 [literatura/]",
-        "ROMAO et al. (2026). Applying a Requirements-Focused Agile Management Approach for Machine Learning-Enabled Systems. arXiv:2602.05042 [literatura/]"
+        "ROMAO et al. (2026). Applying a Requirements-Focused Agile Management Approach for Machine Learning-Enabled Systems. arXiv:2602.05042 [literatura/]",
+        "BRECK et al. (2017). The ML Test Score: A Rubric for ML Production Readiness and Technical Debt Reduction. IEEE Big Data 2017. [literatura/]"
       ]
     },
     {
@@ -173,11 +170,9 @@
       "pontuacoes": { "impacto": 2, "necessidade": 2, "dependencia": 2, "esforco": 2 },
       "orientacao": "Levantar as restrições de prazo, custo, legislação e infraestrutura e anotar quais delas limitam a escolha de dados ou de modelo.",
       "proxima_acao": "Registrar as restrições conhecidas e, para cada uma, o que ela impede ou exige.",
-      "termos_busca": [
-        "non-functional requirements and constraints",
-        "legal and regulatory constraints",
-        "cost and time constraints",
-        "technical constraints of ML systems"
+      "citacoes": [
+        {"arquivo": "aplying_requirements_focused_agile_management_approach.pdf", "pagina": 9, "trecho": "The BO described Data Feasibility as a “no-brainer” without which projects are “doomed to failure” (INT-BO-22; C08). By ensuring an upfront assessment of constraints (C18), RefineML mitigates the risk of late-stage failures due to unfeasible requirements."},
+        {"arquivo": "challenges_in_deploying_machine_learning.pdf", "pagina": 8, "trecho": "Another advantage that less complex models can oﬀer is their relatively modest hardware requirements. This becomes a key decision point in resource constrained environments, as shown by Wagstaﬀ et al. [40]."}
       ],
       "referencias": [
         "HABIBULLAH; GAY; HORKOFF (2023). Non-functional requirements for machine learning: understanding current use and challenges among practitioners. Requirements Engineering 28, 283–316. [literatura/]",
@@ -203,10 +198,9 @@
       "pontuacoes": { "impacto": 2, "necessidade": 2, "dependencia": 1, "esforco": 1 },
       "orientacao": "Atribuir um responsável a cada frente do projeto e combinar quem decide quando houver divergência.",
       "proxima_acao": "Escrever a lista de frentes do projeto com o nome do responsável por cada uma.",
-      "termos_busca": [
-        "roles and responsibilities in ML teams",
-        "data scientist and software engineer collaboration",
-        "team process and accountability"
+      "citacoes": [
+        {"arquivo": "Machine_Learning_Operations_MLOps_Overview_Definition_and_Architecture.pdf", "pagina": 7, "trecho": "MLOps is an interdisciplinary group process, and the interplay of different roles is crucial to design, manage, automate, and operate an ML system in production. In the following, every role, its purpose, and related tasks are briefly described:"},
+        {"arquivo": "practices_for_engineering_trustworthy_ml_applications.pdf", "pagina": 2, "trecho": "We also identified a single practice in the Team (Tm.) class, related to defining team processes for deciding on MLspecific trade-offs. For example, processes for deciding on prioritisation of interpretable ML methods over non-interpretable methods, on prioritisation of non-biased models with lower accuracy, or on whether to use ML in the first place."}
       ],
       "referencias": [
         "KREUZBERGER; KÜHL; HIRSCHL (2023). Machine Learning Operations (MLOps): Overview, Definition, and Architecture. IEEE Access 11. arXiv:2205.02302 [literatura/]",
@@ -232,10 +226,9 @@
       "pontuacoes": { "impacto": 2, "necessidade": 1, "dependencia": 1, "esforco": 2 },
       "orientacao": "Manter um registro curto por decisão: o que foi decidido, quando, por quê, e qual alternativa foi descartada.",
       "proxima_acao": "Criar o arquivo de decisões e registrar nele a última decisão tomada pela equipe.",
-      "termos_busca": [
-        "architecture decision record",
-        "documenting architecture decisions",
-        "decision rationale and alternatives"
+      "citacoes": [
+        {"arquivo": "Documenting Architecture Decisions.pdf", "pagina": 2, "trecho": "We will keep a collection of records for \"architecturally significant\" decisions: those that affect the structure, non-functional characteristics, dependencies, interfaces, or construction techniques. An architecture decision record is a short text file in a format similar to an Alexandrian pattern."},
+        {"arquivo": "Documenting Architecture Decisions.pdf", "pagina": 4, "trecho": "The motivation behind previous decisions is visible for everyone, present and future. Nobody is left scratching their heads to understand, \"What were they thinking?\" and the time to change old decisions will be clear from changes in the project's context."}
       ],
       "referencias": [
         "NYGARD (2011). Documenting Architecture Decisions. Cognitect, 15 nov. 2011. [literatura/]",
@@ -261,11 +254,9 @@
       "pontuacoes": { "impacto": 3, "necessidade": 3, "dependencia": 3, "esforco": 1 },
       "orientacao": "Registrar a fonte, o período de coleta e as principais características dos dados.",
       "proxima_acao": "Criar o registro de documentação da fonte dos dados.",
-      "termos_busca": [
-        "data source",
-        "data provenance",
-        "data collection",
-        "where the data comes from"
+      "citacoes": [
+        {"arquivo": "datasheets_for_dataset.pdf", "pagina": 1, "trecho": "For these and other reasons, the World Economic Forum suggests that all entities should document the provenance, creation, and use of machine learning datasets in order to avoid discriminatory outcomes [25]."},
+        {"arquivo": "datasheets_for_dataset.pdf", "pagina": 7, "trecho": "Over what timeframe was the data collected? Does this timeframe match the creation timeframe of the data associated with the instances (e.g., recent crawl of old news articles)? If not, please describe the timeframe in which the data associated with the instances was created."}
       ],
       "referencias": [
         "GEBRU et al. (2021). Datasheets for Datasets. arXiv:1803.09010 [literatura/]",
@@ -291,11 +282,9 @@
       "pontuacoes": { "impacto": 3, "necessidade": 2, "dependencia": 2, "esforco": 2 },
       "orientacao": "Documentar o conjunto de dados respondendo às perguntas básicas: motivação, composição, processo de coleta e usos recomendados.",
       "proxima_acao": "Criar a ficha do conjunto de dados a partir de um modelo pronto, como datasheet ou dataset card.",
-      "termos_busca": [
-        "dataset documentation",
-        "datasheets for datasets",
-        "dataset card",
-        "motivation, composition and collection process of the dataset"
+      "citacoes": [
+        {"arquivo": "datasheets_for_dataset.pdf", "pagina": 4, "trecho": "The questions are grouped into sections that roughly match the key stages of the dataset lifecycle: motivation, composition, collection process, preprocessing/cleaning/labeling, uses, distribution, and maintenance."},
+        {"arquivo": "datasheets_for_dataset.pdf", "pagina": 2, "trecho": "dataset be accompanied with a datasheet that documents its motivation, composition, collection process, recommended uses, and so on."}
       ],
       "referencias": [
         "GEBRU et al. (2021). Datasheets for Datasets. arXiv:1803.09010 [literatura/]",
@@ -321,9 +310,9 @@
       "pontuacoes": { "impacto": 2, "necessidade": 2, "dependencia": 2, "esforco": 2 },
       "orientacao": "Registrar quantas instâncias existem, o que cada uma representa, quais variáveis e tipos, e o período coberto.",
       "proxima_acao": "Gerar o resumo das características do conjunto atual e anexá-lo à documentação dos dados.",
-      "termos_busca": [
-        "composition of the dataset: instances, features, size",
-        "what do the instances represent"
+      "citacoes": [
+        {"arquivo": "datasheets_for_dataset.pdf", "pagina": 5, "trecho": "What do the instances that comprise the dataset represent (e.g., documents, photos, people, countries)? Are there multiple types of instances (e.g., movies, users, and ratings; people and interactions between them; nodes and edges)? Please provide a description. • How many instances are there in total (of each type, if appropriate)?"},
+        {"arquivo": "data_validation_for_ml.pdf", "pagina": 4, "trecho": "The constraints associated with each feature cover some basic properties (e.g., type, domain, valency) but also constraints that are relevant to ML"}
       ],
       "referencias": [
         "GEBRU et al. (2021). Datasheets for Datasets. arXiv:1803.09010 [literatura/]",
@@ -349,16 +338,15 @@
       "pontuacoes": { "impacto": 3, "necessidade": 3, "dependencia": 2, "esforco": 3 },
       "orientacao": "Rodar uma verificação mínima — ausentes, duplicatas, faixas inválidas e distribuição da variável-alvo — e registrar o que foi encontrado.",
       "proxima_acao": "Executar a verificação mínima no conjunto atual e anotar os problemas encontrados.",
-      "termos_busca": [
-        "data quality",
-        "data validation",
-        "data errors and anomalies",
-        "data quality checks"
+      "citacoes": [
+        {"arquivo": "schelter_data_quality_verification.pdf", "pagina": 1, "trecho": "Even if the ingestion process still works, the errors in the data might cause unexpected errors in downstream systems that consume the data. As a consequence, the team managing the daily ingestion process must validate the data quality of the log files, e.g., by checking for missing values, duplicate records, or anomalies in size."},
+        {"arquivo": "data_management_challenges_in_production.pdf", "pagina": 2, "trecho": "This process involves generating and visualizing salient features about the data (e.g., the range and statistical distribution of feature values, correlations between features in the training data, and distributions of positive and negative examples across different slices) and identifying any anomalies or outliers that exist in the data."}
       ],
       "referencias": [
         "BRECK et al. (2019). Data Validation for Machine Learning. SysML 2019. [literatura/]",
         "POLYZOTIS et al. (2017). Data Management Challenges in Production Machine Learning. Tutorial, SIGMOD 2017. [literatura/]",
-        "HOLLAND et al. (2018). The Dataset Nutrition Label: A Framework To Drive Higher Data Quality Standards. Rascunho, maio de 2018. [literatura/]"
+        "HOLLAND et al. (2018). The Dataset Nutrition Label: A Framework To Drive Higher Data Quality Standards. Rascunho, maio de 2018. [literatura/]",
+        "SCHELTER et al. (2018). Automating Large-Scale Data Quality Verification. PVLDB 11(12). [literatura/]"
       ]
     },
     {
@@ -379,9 +367,9 @@
       "pontuacoes": { "impacto": 3, "necessidade": 2, "dependencia": 1, "esforco": 2 },
       "orientacao": "Anotar os problemas conhecidos dos dados e, para cada um, que decisão do modelo ele pode afetar.",
       "proxima_acao": "Listar os problemas já percebidos nos dados e registrar a lista junto à documentação.",
-      "termos_busca": [
-        "data problems reported by practitioners",
-        "data quality issues and limitations"
+      "citacoes": [
+        {"arquivo": "datasheets_for_dataset.pdf", "pagina": 9, "trecho": "Is there anything about the composition of the dataset or the way it was collected and preprocessed/cleaned/labeled that might impact future uses?"},
+        {"arquivo": "data_management_challenges_in_production.pdf", "pagina": 3, "trecho": "The second subtask is to understand the impact of the error on model quality. For practical reasons, a team may be willing to continue operating the pipeline with invalid data if the impact on model quality is negligible."}
       ],
       "referencias": [
         "KALINOWSKI et al. (2025). Naming the Pain in Machine Learning-Enabled Systems Engineering. JSS. arXiv:2406.04359 [literatura/]",
@@ -407,11 +395,9 @@
       "pontuacoes": { "impacto": 1, "necessidade": 1, "dependencia": 1, "esforco": 2 },
       "orientacao": "Reunir num único lugar a documentação dos dados e identificar cada versão do conjunto usada no projeto.",
       "proxima_acao": "Criar a pasta ou página de dados do projeto e registrar nela a versão atual do conjunto.",
-      "termos_busca": [
-        "data versioning",
-        "metadata management",
-        "organizing dataset information",
-        "data lineage"
+      "citacoes": [
+        {"arquivo": "versioning_for_end_to_end_machine_learning_pipelines.pdf", "pagina": 2, "trecho": "Finally, Section 6 introduces a central registry which keeps track of all the pipelines running in production, and what dataset versions they produce and consume, in order to facilitate version upgrades and monitoring."},
+        {"arquivo": "datasheets_for_dataset.pdf", "pagina": 11, "trecho": "We also note that the questions and workflow may pose problems for dynamic datasets. If a dataset changes only infrequently, we recommend accompanying updated versions with updated datasheets."}
       ],
       "referencias": [
         "VAN DER WEIDE et al. (2017). Versioning for End-to-End Machine Learning Pipelines. DEEM '17. [literatura/]",

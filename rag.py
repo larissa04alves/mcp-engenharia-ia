@@ -1,6 +1,7 @@
-"""Consulta o índice da literatura para fundamentar a orientação das práticas. Nunca altera a pontuação."""
+"""Confere no índice da literatura as citações que fundamentam as práticas. Nunca altera a pontuação."""
 
 import logging
+import unicodedata
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
@@ -12,9 +13,7 @@ from chromadb.errors import NotFoundError
 PASTA_INDICE = Path(__file__).parent / "indice"
 COLECAO = "literatura"
 
-LIMIAR = 0.45
-MAX_TRECHOS = 2
-MAX_CARACTERES = 400
+TAMANHO_EMENDA = 60
 
 # O ChromaDB avisa no stderr coisas que não interessam a quem usa o servidor.
 logging.getLogger("chromadb").setLevel(logging.ERROR)
@@ -25,7 +24,6 @@ class Trecho:
     texto: str
     arquivo: str
     pagina: int
-    distancia: float
 
     def fonte(self) -> str:
         return f"{self.arquivo}, p. {self.pagina}"
@@ -59,33 +57,46 @@ def indice_disponivel() -> bool:
         return False
 
 
-def _truncar(texto: str) -> str:
-    if len(texto) <= MAX_CARACTERES:
-        return texto
-    corte = texto[:MAX_CARACTERES].rsplit(" ", 1)[0]
-    return corte + "…"
+def _comparavel(texto: str) -> str:
+    """Só letras e números, em minúsculas: o PDF lido por outra ferramenta difere em espaço, hífen e ligadura."""
+    return "".join(c for c in unicodedata.normalize("NFKC", texto).lower() if c.isalnum())
 
 
-def buscar(termos_busca: list[str], k: int = MAX_TRECHOS) -> list[Trecho]:
-    """Até k trechos abaixo do limiar de distância. Lista vazia é resposta válida."""
-    resultado = _colecao().query(query_texts=[" ".join(termos_busca)], n_results=k)
+def _texto_da_pagina(arquivo: str, pagina: int) -> str:
+    """Remonta a página a partir dos pedaços do índice, desfazendo a sobreposição entre um e o seguinte."""
+    resultado = _colecao().get(where={"$and": [{"arquivo": arquivo}, {"pagina": pagina}]}, include=["documents"])
+    pedacos = [
+        texto
+        for _, texto in sorted(zip(resultado["ids"], resultado["documents"], strict=True), key=lambda par: int(par[0]))
+    ]
+
+    texto = ""
+    for pedaco in pedacos:
+        emenda = texto.rfind(pedaco[:TAMANHO_EMENDA])
+        texto = texto[:emenda] + pedaco if emenda != -1 else f"{texto} {pedaco}"
+    return texto
+
+
+def localizar(citacao: dict) -> Trecho | None:
+    """O trecho curado, se ele está de fato na página citada do índice; None se não está."""
+    pagina = _texto_da_pagina(citacao["arquivo"], citacao["pagina"])
+    if _comparavel(citacao["trecho"]) not in _comparavel(pagina):
+        return None
+    return Trecho(citacao["trecho"], citacao["arquivo"], citacao["pagina"])
+
+
+def citacoes_ausentes(praticas: list[dict]) -> list[str]:
+    """As citações que o índice não confirma, uma linha por citação."""
     return [
-        Trecho(_truncar(texto), meta["arquivo"], meta["pagina"], distancia)
-        for texto, meta, distancia in zip(
-            resultado["documents"][0], resultado["metadatas"][0], resultado["distances"][0], strict=True
-        )
-        if distancia <= LIMIAR
+        f"{pratica['id']} — {citacao['arquivo']}, p. {citacao['pagina']}: “{citacao['trecho'][:60]}”"
+        for pratica in praticas
+        for citacao in pratica["citacoes"]
+        if localizar(citacao) is None
     ]
 
 
 if __name__ == "__main__":
     from base import carregar
 
-    for pratica in carregar().praticas:
-        trechos = buscar(pratica["termos_busca"])
-        print(f"\n{pratica['id']}  {pratica['nome']}")
-        print(f"     termos: {', '.join(pratica['termos_busca'])}")
-        if not trechos:
-            print("     (nenhum trecho abaixo do limiar)")
-        for t in trechos:
-            print(f"     {t.distancia:.2f}  {t.fonte()}\n           {t.texto[:160]}")
+    ausentes = citacoes_ausentes(carregar().praticas)
+    print("\n".join(ausentes) or "Todas as citações estão no índice.")
