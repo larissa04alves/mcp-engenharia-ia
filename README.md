@@ -18,22 +18,26 @@ Projeto de Pesquisa Aplicada (PUCPR, Grupo 8, tema Engenharia de IA).
 
 ## Instalar
 
-Precisa de [uv](https://docs.astral.sh/uv/). O Python 3.12 o próprio `uv` baixa.
+Precisa de [git](https://git-scm.com/) e [uv](https://docs.astral.sh/uv/). O Python 3.12
+o próprio `uv` baixa.
 
 ```bash
+git clone https://github.com/larissa04alves/mcp-engenharia-ia.git
+cd mcp-engenharia-ia
 uv sync
 ```
 
-Os PDFs dos artigos vão em `literatura/` (aceita `.pdf`, `.md` e `.txt`). Depois, gerar
-o índice **uma vez**:
+Os artigos já vêm em `literatura/` (aceita `.pdf`, `.md` e `.txt`). Depois, gerar o índice
+**uma vez**:
 
 ```bash
 uv run indexar.py
 ```
 
-Lê a literatura, pica em pedaços e grava em `indice/`. A primeira execução baixa o modelo
-de embedding (~80 MB) e depois roda offline. `indice/` não vai para o git — cada pessoa
-gera o seu; rodar de novo recria do zero.
+Lê a literatura, pica em pedaços e grava em `indice/`, em menos de um minuto. A primeira
+execução baixa o modelo de embedding (~80 MB) e depois roda offline. `indice/` não vai
+para o git — cada pessoa gera o seu; rodar de novo recria do zero. Para conferir que deu
+certo, `uv run rag.py` deve responder "Todas as citações estão no índice."
 
 **Sem o índice o servidor não sobe**, porque a fundamentação pela literatura é parte do
 que ele promete entregar.
@@ -48,7 +52,8 @@ Claude Desktop, Claude Code ou Cursor — e a equipe só conversa com ele.
 ### 1. Conectar o servidor ao assistente
 
 O servidor sobe por stdio com `uv run servidor.py`. Use o **caminho absoluto do `uv`**
-(`which uv`), porque apps de desktop não herdam o `PATH` do terminal.
+(`which uv`; no Windows, `where uv`) e o caminho absoluto da pasta clonada, porque apps de
+desktop não herdam o `PATH` do terminal.
 
 **Claude Desktop** — em `claude_desktop_config.json` (Linux: `~/.config/Claude/`;
 macOS: `~/Library/Application Support/Claude/`; Windows: `%APPDATA%\Claude\`):
@@ -128,8 +133,9 @@ O assistente apresenta as práticas pendentes **em ordem de prioridade**, cada u
 - justificativa, orientação prática e a próxima ação concreta;
 - os trechos da literatura que sustentam a orientação, com arquivo e página.
 
-A prioridade vem só da regra do servidor. Se a equipe discordar, o assistente é instruído
-a dizer isso em vez de reordenar.
+A prioridade vem só da regra do servidor: pontuação decrescente e, em caso de empate, o id
+da prática em ordem alfabética. Se a equipe discordar, o assistente é instruído a dizer
+isso em vez de reordenar.
 
 ### 4. Guardar o registro e retomar depois
 
@@ -169,6 +175,23 @@ da DD2"). Os três prompts `coletar_*` servem para quem quer conduzir um bloco d
 
 ---
 
+## Privacidade e uso dos dados
+
+O servidor roda na máquina de quem o instala, não guarda nada entre sessões e não envia
+as respostas da equipe a nenhum serviço. A única conexão externa é o download do modelo de
+embedding na primeira indexação, e a telemetria do ChromaDB fica desligada.
+
+As respostas da equipe, porém, passam pelo **assistente de IA que ela escolheu** para
+conduzir a conversa (Claude, Cursor ou outro). O que acontece com esse conteúdo —
+armazenamento, retenção e uso para treinar modelos — é definido pelo fornecedor do
+assistente, nos termos de uso e nas configurações de privacidade da conta, e não por este
+projeto. Os autores não controlam esse tratamento nem respondem por ele.
+
+Antes de usar com um projeto real, confira essas configurações no assistente escolhido e
+evite colocar nas respostas dados pessoais, sigilosos ou de clientes.
+
+---
+
 ## Para quem desenvolve
 
 ### Tecnologias
@@ -196,7 +219,8 @@ uv run mcp dev servidor.py
 ```
 
 Abre uma interface web para testar cada resource, ferramenta e prompt isoladamente,
-preenchendo os campos à mão.
+preenchendo os campos à mão. Precisa de [Node.js](https://nodejs.org/), porque o
+Inspector roda via `npx`.
 
 ### Comandos
 
@@ -248,10 +272,5 @@ nucleo.py        a regra: contexto, seleção, priorização, renderização
 rag.py           conferência das citações no índice
 servidor.py      as 11 operações MCP (camada fina)
 test_*.py        suíte de testes
-roteiros/        entradas e oráculos dos testes ponta a ponta
+mcp-engenharia-ia.md  visão e justificativa do artefato
 ```
-
-| Documento              | O que é                                                |
-| ---------------------- | ------------------------------------------------------ |
-| `mcp-engenharia-ia.md` | visão e justificativa do artefato                      |
-| `TESTES.md`            | plano de testes, roteiros e resultado de cada execução |

@@ -66,7 +66,7 @@ Quatro critérios de 1 a 3: impacto, necessidade, dependência e esforço. O esf
 
 ### 3.5 Saídas
 
-Para cada prática pendente: prática, prioridade, justificativa, orientação e próxima ação. O conjunto ordenado por prioridade decrescente é o plano de ação. Junto vai a lista das práticas atendidas, os pontos que a equipe ainda não verificou, as lacunas das indeterminadas e o registro do processo em markdown, com a resposta da equipe em cada prática e a versão da base, que a equipe guarda no próprio repositório. Como o servidor não tem memória entre sessões, esse registro é o que permite retomar a análise depois.
+Para cada prática pendente: prática, prioridade, justificativa, orientação e próxima ação. O conjunto ordenado por prioridade decrescente e, em caso de empate, pelo id da prática em ordem alfabética é o plano de ação. Junto vai a lista das práticas atendidas, os pontos que a equipe ainda não verificou, as lacunas das indeterminadas e o registro do processo em markdown, com a resposta da equipe em cada prática e a versão da base, que a equipe guarda no próprio repositório. Como o servidor não tem memória entre sessões, esse registro é o que permite retomar a análise depois.
 
 ### 3.6 Fundamentação pela literatura (RAG)
 
