@@ -8,8 +8,9 @@ assistente de IA que elas já usam.
   documentação (DD1–DD6).
 - **Prioridade por regra fixa:** `P = I + N + D + (4 − E)`, com ajustes de contexto.
   Nenhum modelo de linguagem participa do cálculo — a mesma entrada dá sempre o mesmo plano.
-- **Fundamentação por RAG:** cada orientação vem com trecho da literatura, arquivo e página.
-  O RAG não altera a pontuação.
+- **Fundamentação pela literatura:** cada orientação vem com os trechos que a sustentam,
+  escolhidos pela equipe e conferidos no índice da literatura, com arquivo e página. A
+  fundamentação não altera a pontuação.
 
 Projeto de Pesquisa Aplicada (PUCPR, Grupo 8, tema Engenharia de IA).
 
@@ -17,22 +18,26 @@ Projeto de Pesquisa Aplicada (PUCPR, Grupo 8, tema Engenharia de IA).
 
 ## Instalar
 
-Precisa de [uv](https://docs.astral.sh/uv/). O Python 3.12 o próprio `uv` baixa.
+Precisa de [git](https://git-scm.com/) e [uv](https://docs.astral.sh/uv/). O Python 3.12
+o próprio `uv` baixa.
 
 ```bash
+git clone https://github.com/larissa04alves/mcp-engenharia-ia.git
+cd mcp-engenharia-ia
 uv sync
 ```
 
-Os PDFs dos artigos vão em `literatura/` (aceita `.pdf`, `.md` e `.txt`). Depois, gerar
-o índice **uma vez**:
+Os artigos já vêm em `literatura/` (aceita `.pdf`, `.md` e `.txt`). Depois, gerar o índice
+**uma vez**:
 
 ```bash
 uv run indexar.py
 ```
 
-Lê a literatura, pica em pedaços e grava em `indice/`. A primeira execução baixa o modelo
-de embedding (~80 MB) e depois roda offline. `indice/` não vai para o git — cada pessoa
-gera o seu; rodar de novo recria do zero.
+Lê a literatura, pica em pedaços e grava em `indice/`, em menos de um minuto. A primeira
+execução baixa o modelo de embedding (~80 MB) e depois roda offline. `indice/` não vai
+para o git — cada pessoa gera o seu; rodar de novo recria do zero. Para conferir que deu
+certo, `uv run rag.py` deve responder "Todas as citações estão no índice."
 
 **Sem o índice o servidor não sobe**, porque a fundamentação pela literatura é parte do
 que ele promete entregar.
@@ -47,7 +52,8 @@ Claude Desktop, Claude Code ou Cursor — e a equipe só conversa com ele.
 ### 1. Conectar o servidor ao assistente
 
 O servidor sobe por stdio com `uv run servidor.py`. Use o **caminho absoluto do `uv`**
-(`which uv`), porque apps de desktop não herdam o `PATH` do terminal.
+(`which uv`; no Windows, `where uv`) e o caminho absoluto da pasta clonada, porque apps de
+desktop não herdam o `PATH` do terminal.
 
 **Claude Desktop** — em `claude_desktop_config.json` (Linux: `~/.config/Claude/`;
 macOS: `~/Library/Application Support/Claude/`; Windows: `%APPDATA%\Claude\`):
@@ -96,17 +102,20 @@ blocos — o projeto, os requisitos e os dados — num total de 16 perguntas. Ex
 - Onde as decisões do projeto ficam registradas?
 - De onde vêm os dados? Existe documentação deles?
 
-**Como responder.** Com o que a equipe sabe, sem enfeitar:
+**Como responder.** Com o que a equipe sabe, sem enfeitar. Para cada resposta, o
+assistente registra o texto da equipe e uma de quatro situações:
 
-| Se a equipe…       | Responda assim                                    | O servidor entende                    |
-| ------------------ | ------------------------------------------------- | ------------------------------------- |
-| já faz ou já tem   | descreva em uma frase                             | prática **atendida** — sai do plano   |
-| não faz ou não tem | diga claramente: "não temos", "ainda não fizemos" | prática **pendente** — entra no plano |
-| não sabe           | "não sei"                                         | pendente                              |
+| Se a equipe…                       | Situação         | O servidor entende                                                |
+| ---------------------------------- | ---------------- | ----------------------------------------------------------------- |
+| já faz ou já tem, e isso basta     | `suficiente`     | prática **atendida** — sai do plano                               |
+| tem algo, mas mínimo ou incompleto | `insuficiente`   | prática **pendente** — entra no plano, dizendo que algo já existe |
+| não faz ou não tem                 | `inexistente`    | prática **pendente** — entra no plano                             |
+| não sabe ou não analisou           | `nao_verificado` | prática **pendente** — entra no plano como algo a levantar        |
 
-Quando uma resposta fica ambígua ("não temos processo formal, mas anotamos no Notion"),
-o servidor devolve a pergunta e o assistente a refaz. Isso é esperado: ele prefere
-perguntar de novo a chutar.
+Quando a equipe diz que algo existe ("só o README"), o assistente pergunta se ela o
+considera suficiente antes de registrar. Um "não sei" nunca vira atendida. O ponto entra
+no plano, abre o registro na seção **Pontos a verificar** e o assistente volta a lembrá-lo
+ao apresentar o plano.
 
 Nos bastidores, o assistente chama quatro ferramentas nesta ordem, e cada uma diz a ele
 qual é a próxima:
@@ -122,15 +131,17 @@ O assistente apresenta as práticas pendentes **em ordem de prioridade**, cada u
 - nível — **Essencial**, **Recomendada** ou **Evolução** — e a pontuação aberta
   (`I + N + D + (4 − E)`), com os ajustes de contexto que dispararam;
 - justificativa, orientação prática e a próxima ação concreta;
-- até dois trechos da literatura, com arquivo e página.
+- os trechos da literatura que sustentam a orientação, com arquivo e página.
 
-A prioridade vem só da regra do servidor. Se a equipe discordar, o assistente é instruído
-a dizer isso em vez de reordenar.
+A prioridade vem só da regra do servidor: pontuação decrescente e, em caso de empate, o id
+da prática em ordem alfabética. Se a equipe discordar, o assistente é instruído a dizer
+isso em vez de reordenar.
 
 ### 4. Guardar o registro e retomar depois
 
-Junto com o plano vem um **registro em markdown** com tudo: contexto, ajustes, práticas
-atendidas, plano e lacunas. O assistente oferece salvá-lo num arquivo do repositório da
+Junto com o plano vem um **registro em markdown** com tudo: pontos a verificar, contexto,
+ajustes, práticas atendidas, plano e lacunas, com a resposta da equipe em cada prática e a
+versão da base de práticas. O assistente oferece salvá-lo num arquivo do repositório da
 equipe, por exemplo `docs/engenharia-ia.md`.
 
 **O servidor não guarda nada entre sessões.** Esse arquivo é a memória da análise: para
@@ -147,8 +158,8 @@ de perguntas que o usuário escolhe no menu de anexos.
 | Tipo     | Nome                      | O que recebe                        | O que faz e devolve                                                                                                  |
 | -------- | ------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | tool     | `identificar_contexto`    | os campos do projeto                | normaliza tipo de problema, tamanho da equipe, estágio e dados sensíveis; diz quais dos 5 ajustes de contexto se aplicam |
-| tool     | `selecionar_praticas`     | os campos do projeto                | classifica cada uma das 12 práticas em **atendida**, **pendente** ou **indeterminada**; para as indeterminadas, devolve a pergunta a fazer à equipe |
-| tool     | `priorizar_praticas`      | ids das pendentes + campos          | aplica os ajustes, calcula `P = I + N + D + (4 − E)`, classifica em Essencial / Recomendada / Evolução, ordena e anexa até 2 trechos da literatura por prática |
+| tool     | `selecionar_praticas`     | os campos do projeto                | classifica cada uma das 12 práticas em **atendida**, **pendente** ou **indeterminada** pela situação informada; para as indeterminadas, devolve a pergunta a fazer à equipe, e em `a_verificar` lista o que ela ainda não verificou |
+| tool     | `priorizar_praticas`      | ids das pendentes + campos          | aplica os ajustes, calcula `P = I + N + D + (4 − E)`, classifica em Essencial / Recomendada / Evolução, ordena e anexa os trechos da literatura de cada prática, conferidos no índice |
 | tool     | `gerar_plano_acao`        | os campos do projeto                | roda as três etapas acima de uma vez e devolve o plano completo mais o **registro em markdown** para a equipe salvar    |
 | resource | `praticas://catalogo`     | nada                                | as 12 práticas, por grupo                                                                                             |
 | resource | `praticas://{id}`         | id da prática (ex.: `RP3`)          | a ficha completa: condições, pontuações, orientação, próxima ação, referências                                        |
@@ -164,6 +175,23 @@ da DD2"). Os três prompts `coletar_*` servem para quem quer conduzir um bloco d
 
 ---
 
+## Privacidade e uso dos dados
+
+O servidor roda na máquina de quem o instala, não guarda nada entre sessões e não envia
+as respostas da equipe a nenhum serviço. A única conexão externa é o download do modelo de
+embedding na primeira indexação, e a telemetria do ChromaDB fica desligada.
+
+As respostas da equipe, porém, passam pelo **assistente de IA que ela escolheu** para
+conduzir a conversa (Claude, Cursor ou outro). O que acontece com esse conteúdo —
+armazenamento, retenção e uso para treinar modelos — é definido pelo fornecedor do
+assistente, nos termos de uso e nas configurações de privacidade da conta, e não por este
+projeto. Os autores não controlam esse tratamento nem respondem por ele.
+
+Antes de usar com um projeto real, confira essas configurações no assistente escolhido e
+evite colocar nas respostas dados pessoais, sigilosos ou de clientes.
+
+---
+
 ## Para quem desenvolve
 
 ### Tecnologias
@@ -174,7 +202,7 @@ da DD2"). Os três prompts `coletar_*` servem para quem quer conduzir um bloco d
 | [uv](https://docs.astral.sh/uv/)     | —      | instala o Python e as dependências e roda os scripts; é o comando que o assistente usa para subir o servidor |
 | `mcp` (SDK oficial, `MCPServer`)     | 2.2.0  | transforma as funções de `servidor.py` em tools, resources e prompts e cuida do protocolo JSON-RPC por stdio |
 | `pydantic`                           | 2.13   | define os 16 campos de entrada (`Projeto`) e gera o schema que o assistente vê                       |
-| `chromadb`                           | 1.5.9  | banco vetorial embutido: guarda os trechos da literatura em `indice/` e faz a busca por similaridade  |
+| `chromadb`                           | 1.5.9  | banco vetorial embutido: guarda os trechos da literatura em `indice/`; o servidor confere ali cada citação |
 | `onnxruntime` + all-MiniLM-L6-v2     | 1.30   | modelo de embedding padrão do ChromaDB; baixado uma vez (~80 MB) e roda offline                      |
 | `pypdf`                              | 6.19   | extrai o texto dos PDFs em `literatura/` na hora de indexar                                           |
 | `pytest`                             | 9.1    | suíte de testes (`uv run pytest`)                                                                     |
@@ -191,7 +219,8 @@ uv run mcp dev servidor.py
 ```
 
 Abre uma interface web para testar cada resource, ferramenta e prompt isoladamente,
-preenchendo os campos à mão.
+preenchendo os campos à mão. Precisa de [Node.js](https://nodejs.org/), porque o
+Inspector roda via `npx`.
 
 ### Comandos
 
@@ -199,7 +228,7 @@ preenchendo os campos à mão.
 | ---------------------------- | ------------------------------------------------------------ |
 | `uv run base.py`             | confere o `praticas.json` e imprime o resumo da base         |
 | `uv run nucleo.py [x.json]`  | imprime o registro de um projeto de exemplo, ou do JSON dado |
-| `uv run rag.py`              | mostra o que cada prática recupera da literatura             |
+| `uv run rag.py`              | confere se todas as citações estão no índice                 |
 | `uv run indexar.py`          | gera o índice a partir de `literatura/`                      |
 | `uv run pytest`              | roda a suíte de testes                                       |
 | `uv run mcp dev servidor.py` | abre o Inspector                                             |
@@ -224,9 +253,12 @@ Duas coisas travadas de propósito pelos testes:
 - **Toda referência precisa estar em `literatura/`** e terminar com o marcador
   `[literatura/]`. Senão a ficha citaria uma bibliografia e o RAG outra.
 
-Se uma citação vier fora de contexto, o conserto é editar `termos_busca` da ficha —
-sem tocar em código. Eles estão em inglês porque a literatura e o modelo de embedding
-também estão: medido, termos em português voltavam sem trecho ou com trecho genérico.
+Cada ficha traz em `citacoes` os trechos que sustentam a orientação: arquivo, página
+física do PDF e o texto copiado do artigo. Os trechos são escolhidos pela equipe, não
+pela busca: medido em 22/10/2026, a busca por similaridade trazia trecho do tema certo,
+mas quase nunca o que sustentava a instrução. Ao subir, o servidor confere cada citação
+no índice, comparando só letras e números, e não sobe se alguma não estiver na página
+citada. Para trocar uma citação, edite a ficha e rode `uv run rag.py`.
 
 ### Arquivos
 
@@ -237,13 +269,8 @@ indexar.py       literatura/ → indice/
 indice/          banco vetorial gerado (fora do git)
 base.py          carrega e valida o praticas.json
 nucleo.py        a regra: contexto, seleção, priorização, renderização
-rag.py           consulta ao índice
+rag.py           conferência das citações no índice
 servidor.py      as 11 operações MCP (camada fina)
 test_*.py        suíte de testes
-roteiros/        entradas e oráculos dos testes ponta a ponta
+mcp-engenharia-ia.md  visão e justificativa do artefato
 ```
-
-| Documento              | O que é                                                |
-| ---------------------- | ------------------------------------------------------ |
-| `mcp-engenharia-ia.md` | visão e justificativa do artefato                      |
-| `TESTES.md`            | plano de testes, roteiros e resultado de cada execução |

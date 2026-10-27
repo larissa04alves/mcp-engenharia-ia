@@ -2,6 +2,7 @@
 
 import json
 import sys
+from typing import Literal
 
 from mcp.server.mcpserver import MCPServer
 from pydantic import BaseModel, Field
@@ -24,6 +25,11 @@ if not rag.indice_disponivel():
     )
     raise SystemExit(1)
 
+if ausentes := rag.citacoes_ausentes(BASE.praticas):
+    print("Citações que não estão no índice da literatura:", *ausentes, sep="\n  ", file=sys.stderr)
+    print("Confira o trecho e a página em praticas.json ou rode: uv run indexar.py", file=sys.stderr)
+    raise SystemExit(1)
+
 
 servidor = MCPServer(
     name="engenharia-ia",
@@ -36,10 +42,22 @@ servidor = MCPServer(
 )
 
 PREENCHIMENTO = (
-    "Passe o texto que a equipe informou; false se ela declarou que não faz ou não tem; "
-    "OMITA o campo se ainda não perguntou — vira lacuna, e o servidor devolve a pergunta. "
-    "Se ela disser que existe mas é mínimo ('só o README', 'básico'), pergunte se considera suficiente: "
-    "se não, passe false. Não chute."
+    "Passe {situacao, resposta}, com resposta nas palavras da equipe, sem resumir. "
+    "Se ela disser que existe, pergunte se considera suficiente antes de escolher a situacao. "
+    "Se ela não sabe, não analisou ou não tem certeza, é nao_verificado: não deduza a partir de outra resposta. "
+    "OMITA o campo se ainda não perguntou — vira lacuna, e o servidor devolve a pergunta."
+)
+
+SITUACAO = (
+    "suficiente: existe e a equipe considera suficiente. "
+    "insuficiente: existe, mas é mínimo, incompleto ou a equipe não considera suficiente ('só o README'). "
+    "inexistente: a equipe declarou que não faz ou não tem. "
+    "nao_verificado: a equipe não sabe, não analisou ou não tem certeza — vira etapa do plano."
+)
+
+LEMBRAR = (
+    "A equipe ainda não verificou {ids}. Esses pontos entram no plano como pendentes: lembre a equipe deles "
+    "e pergunte se ela já consegue responder algum. Se conseguir, atualize a situacao e chame a ferramenta de novo."
 )
 
 UMA_POR_VEZ = (
@@ -54,6 +72,13 @@ ESTAGIOS = (
 )
 
 
+class Resposta(BaseModel):
+    """O que a equipe disse sobre uma prática. Quem decide o estado é a situacao, não o texto."""
+
+    situacao: Literal["suficiente", "insuficiente", "inexistente", "nao_verificado"] = Field(description=SITUACAO)
+    resposta: str | None = Field(None, description="O que a equipe disse, nas palavras dela.")
+
+
 class Projeto(BaseModel):
     """Os 16 campos de entrada. Nenhum é obrigatório: informação ausente vira lacuna."""
 
@@ -62,31 +87,23 @@ class Projeto(BaseModel):
     estagio: str | None = Field(None, description=f"Um de: {ESTAGIOS}.")
     dados_sensiveis: bool | None = Field(None, description="O projeto envolve dados pessoais ou sensíveis?")
 
-    objetivo: str | bool | None = Field(None, description=f"Objetivo do sistema. {PREENCHIMENTO}")
-    requisitos: str | bool | None = Field(None, description=f"Requisitos identificados. {PREENCHIMENTO}")
-    criterios_sucesso: str | bool | None = Field(
+    objetivo: Resposta | None = Field(None, description=f"Objetivo do sistema. {PREENCHIMENTO}")
+    requisitos: Resposta | None = Field(None, description=f"Requisitos identificados. {PREENCHIMENTO}")
+    criterios_sucesso: Resposta | None = Field(
         None, description=f"Métrica e valor que contam como sucesso. {PREENCHIMENTO}"
     )
-    restricoes: str | bool | None = Field(None, description=f"Prazo, custo, regulatório, técnico. {PREENCHIMENTO}")
-    responsabilidades: str | bool | None = Field(None, description=f"Quem faz o quê na equipe. {PREENCHIMENTO}")
-    registro_decisoes: str | bool | None = Field(
-        None, description=f"Onde as decisões ficam registradas. {PREENCHIMENTO}"
-    )
+    restricoes: Resposta | None = Field(None, description=f"Prazo, custo, regulatório, técnico. {PREENCHIMENTO}")
+    responsabilidades: Resposta | None = Field(None, description=f"Quem faz o quê na equipe. {PREENCHIMENTO}")
+    registro_decisoes: Resposta | None = Field(None, description=f"Onde as decisões ficam registradas. {PREENCHIMENTO}")
 
-    fonte_dados: str | bool | None = Field(None, description=f"De onde os dados vêm. {PREENCHIMENTO}")
-    documentacao_dados: str | bool | None = Field(
-        None, description=f"Documentação existente dos dados. {PREENCHIMENTO}"
-    )
-    caracteristicas_dados: str | bool | None = Field(
+    fonte_dados: Resposta | None = Field(None, description=f"De onde os dados vêm. {PREENCHIMENTO}")
+    documentacao_dados: Resposta | None = Field(None, description=f"Documentação existente dos dados. {PREENCHIMENTO}")
+    caracteristicas_dados: Resposta | None = Field(
         None, description=f"Volume, formato, período, variáveis. {PREENCHIMENTO}"
     )
-    qualidade_dados: str | bool | None = Field(
-        None, description=f"Verificações de qualidade já feitas. {PREENCHIMENTO}"
-    )
-    problemas_limitacoes: str | bool | None = Field(
-        None, description=f"Problemas conhecidos nos dados. {PREENCHIMENTO}"
-    )
-    organizacao_infos: str | bool | None = Field(
+    qualidade_dados: Resposta | None = Field(None, description=f"Verificações de qualidade já feitas. {PREENCHIMENTO}")
+    problemas_limitacoes: Resposta | None = Field(None, description=f"Problemas conhecidos nos dados. {PREENCHIMENTO}")
+    organizacao_infos: Resposta | None = Field(
         None, description=f"Como as informações dos dados estão organizadas. {PREENCHIMENTO}"
     )
 
@@ -95,11 +112,17 @@ class Projeto(BaseModel):
 
 
 def _fundamentar(pratica: dict) -> list[dict]:
-    return [{"texto": t.texto, "fonte": t.fonte()} for t in rag.buscar(pratica["termos_busca"])]
+    return [{"texto": t.texto, "fonte": t.fonte()} for c in pratica["citacoes"] if (t := rag.localizar(c))]
 
 
 def _resumo_ajuste(ajuste: dict) -> dict:
     return {chave: ajuste[chave] for chave in ("id", "descricao", "criterio", "delta")}
+
+
+def _lembrete(a_verificar: list[dict]) -> str:
+    if not a_verificar:
+        return ""
+    return LEMBRAR.format(ids=", ".join(f"{p['id']} ({p['nome']})" for p in a_verificar)) + " "
 
 
 def _json(dados) -> str:
@@ -171,7 +194,8 @@ def identificar_contexto(projeto: Projeto) -> dict:
 
 @servidor.tool(
     description=(
-        "Classifica cada prática em atendida, pendente ou indeterminada, lendo o único campo que a determina. "
+        "Classifica cada prática em atendida, pendente ou indeterminada pela situacao do único campo que a "
+        "determina: só suficiente atende. Devolve em a_verificar o que a equipe ainda não verificou. "
         "Decisão por regra, sem inferência."
     )
 )
@@ -188,7 +212,7 @@ def selecionar_praticas(projeto: Projeto) -> dict:
     else:
         proximo = f"Chame priorizar_praticas com ids={pendentes} e o mesmo projeto."
 
-    return {**selecao, "proximo_passo": proximo}
+    return {**selecao, "proximo_passo": _lembrete(selecao["a_verificar"]) + proximo}
 
 
 @servidor.tool(
@@ -199,11 +223,14 @@ def selecionar_praticas(projeto: Projeto) -> dict:
 )
 def priorizar_praticas(ids: list[str], projeto: Projeto) -> dict:
     ids = [i.upper() for i in ids]
-    contexto = nucleo.identificar_contexto(BASE, projeto.entrada())
+    entrada = projeto.entrada()
+    plano = nucleo.priorizar_praticas(BASE, ids, nucleo.identificar_contexto(BASE, entrada), _fundamentar, entrada)
+    a_verificar = [item for item in plano if item["situacao"] == nucleo.NAO_VERIFICADO]
     return {
-        "plano": nucleo.priorizar_praticas(BASE, ids, contexto, _fundamentar),
+        "plano": plano,
         "ids_desconhecidos": [i for i in ids if i not in BASE.por_id],
-        "proximo_passo": "Chame gerar_plano_acao com o mesmo projeto para receber o registro em markdown.",
+        "proximo_passo": _lembrete(a_verificar)
+        + "Chame gerar_plano_acao com o mesmo projeto para receber o registro em markdown.",
     }
 
 
@@ -220,11 +247,14 @@ def gerar_plano_acao(projeto: Projeto) -> dict:
         "ajustes_aplicados": [_resumo_ajuste(a) for a in analise["contexto"]["ajustes"]],
         "atendidas": analise["selecao"]["atendidas"],
         "lacunas": analise["selecao"]["indeterminadas"],
+        "a_verificar": analise["selecao"]["a_verificar"],
         "plano": analise["plano"],
         "registro_markdown": nucleo.render_registro(BASE, analise),
-        "proximo_passo": (
-            "Apresente o plano à equipe em linguagem acessível e salve registro_markdown num arquivo "
-            "do repositório dela. Como o servidor não guarda estado, esse arquivo é o que permite retomar depois."
+        "proximo_passo": _lembrete(analise["selecao"]["a_verificar"])
+        + (
+            "Apresente o plano à equipe em linguagem acessível, começando pelos pontos a verificar, e salve "
+            "registro_markdown num arquivo do repositório dela. Como o servidor não guarda estado, esse arquivo "
+            "é o que permite retomar depois."
         ),
     }
 
@@ -287,6 +317,10 @@ def conduzir_analise() -> str:
         "6. Chame gerar_plano_acao.\n"
         "7. Apresente o plano em linguagem acessível, na ordem de prioridade, e ofereça salvar "
         "registro_markdown num arquivo do repositório da equipe.\n\n"
+        "Quando a equipe disser que não sabe ou não analisou algo, isso é nao_verificado, nunca suficiente: "
+        "é uma etapa que ela ainda precisa fazer. Lembre a equipe desses pontos ao apresentar o plano. "
+        "Se ela trouxer um registro de uma análise anterior, comece pela seção Pontos a verificar e pergunte "
+        "se algum já foi levantado.\n\n"
         "A prioridade vem de uma regra fixa do servidor. Não recalcule, não reordene e não invente "
         "pontuação — se discordar do resultado, diga isso à equipe em vez de alterar a saída.\n\n"
         f"Ao chamar as ferramentas: {PREENCHIMENTO}"

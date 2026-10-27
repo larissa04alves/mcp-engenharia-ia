@@ -41,7 +41,7 @@ def test_toda_ficha_tem_os_campos_que_a_saida_usa():
     for pratica in carregar().praticas:
         for chave in ("descricao", "condicoes", "pergunta", "orientacao", "proxima_acao"):
             assert pratica[chave], f"{pratica['id']} — {chave} vazio"
-        assert pratica["termos_busca"]
+        assert pratica["citacoes"]
         assert pratica["referencias"]
 
 
@@ -85,6 +85,21 @@ def test_grupo_desconhecido(quebrar):
 def test_condicoes_incompletas(quebrar):
     problemas = quebrar(lambda d: d["praticas"][0]["condicoes"].pop("indeterminada"))
     assert problemas == ["RP1 — condicoes.indeterminada ausente ou vazio"]
+
+
+def test_condicoes_exigem_um_texto_por_situacao(quebrar):
+    problemas = quebrar(lambda d: d["praticas"][0]["condicoes"].pop("nao_verificado"))
+    assert problemas == ["RP1 — condicoes.nao_verificado ausente ou vazio"]
+
+
+def test_citacao_sem_pagina_valida(quebrar):
+    problemas = quebrar(lambda d: d["praticas"][0]["citacoes"][0].__setitem__("pagina", 0))
+    assert problemas == ["RP1 — citacoes[1].pagina = 0 (esperado inteiro a partir de 1)"]
+
+
+def test_pratica_sem_citacao(quebrar):
+    problemas = quebrar(lambda d: d["praticas"][0].__setitem__("citacoes", []))
+    assert problemas == ["RP1 — citacoes deveria ser uma lista não vazia"]
 
 
 def test_cobertura_completa_exige_as_doze(quebrar):

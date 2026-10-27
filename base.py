@@ -13,8 +13,9 @@ CAMPOS_CONTEXTO = ("tipo_problema", "tamanho_equipe", "estagio", "dados_sensivei
 
 CHAVES_TOPO = ("versao", "cobertura", "criterios", "escala", "formula", "faixas", "ajustes", "praticas")
 TEXTOS_PRATICA = ("id", "grupo", "nome", "campo", "descricao", "pergunta", "orientacao", "proxima_acao")
-ESTADOS = ("atendida", "pendente", "indeterminada")
-LISTAS_PRATICA = ("termos_busca", "referencias")
+SITUACOES = ("suficiente", "insuficiente", "inexistente", "nao_verificado")
+CONDICOES = (*SITUACOES, "indeterminada")
+LISTAS_PRATICA = ("referencias",)
 
 OPERADORES = ("igual", "ate", "preenchido")
 SELETORES = ("grupo", "ids", "documental_extensa")
@@ -156,6 +157,8 @@ def _validar_praticas(praticas, completa: bool) -> list[str]:
             if not _lista_de_texto(pratica.get(chave)):
                 problemas.append(f"{onde} — {chave} deveria ser uma lista não vazia de textos")
 
+        problemas += _validar_citacoes(pratica.get("citacoes"), onde)
+
         if not isinstance(pratica.get("documental_extensa"), bool):
             problemas.append(f"{onde} — documental_extensa deveria ser true ou false")
 
@@ -166,9 +169,9 @@ def _validar_praticas(praticas, completa: bool) -> list[str]:
         if not isinstance(condicoes, dict):
             problemas.append(f"{onde} — condicoes ausente")
         else:
-            for estado in ESTADOS:
-                if not _texto(condicoes.get(estado)):
-                    problemas.append(f"{onde} — condicoes.{estado} ausente ou vazio")
+            for chave in CONDICOES:
+                if not _texto(condicoes.get(chave)):
+                    problemas.append(f"{onde} — condicoes.{chave} ausente ou vazio")
 
         pontuacoes = pratica.get("pontuacoes")
         if not isinstance(pontuacoes, dict):
@@ -199,6 +202,25 @@ def _validar_praticas(praticas, completa: bool) -> list[str]:
         if extras := vistos_id - set(IDS_COMPLETOS):
             problemas.append(f'cobertura "completa" — ids desconhecidos: {", ".join(sorted(extras))}')
 
+    return problemas
+
+
+def _validar_citacoes(citacoes, onde: str) -> list[str]:
+    """Só a forma: se o trecho está mesmo na página citada, quem confere é o rag.py, contra o índice."""
+    if not isinstance(citacoes, list) or not citacoes:
+        return [f"{onde} — citacoes deveria ser uma lista não vazia"]
+
+    problemas = []
+    for posicao, citacao in enumerate(citacoes, start=1):
+        if not isinstance(citacao, dict):
+            problemas.append(f"{onde} — citacoes[{posicao}] deveria ser um objeto")
+            continue
+        for chave in ("arquivo", "trecho"):
+            if not _texto(citacao.get(chave)):
+                problemas.append(f"{onde} — citacoes[{posicao}].{chave} ausente ou vazio")
+        pagina = citacao.get("pagina")
+        if not (isinstance(pagina, int) and not isinstance(pagina, bool) and pagina >= 1):
+            problemas.append(f"{onde} — citacoes[{posicao}].pagina = {pagina!r} (esperado inteiro a partir de 1)")
     return problemas
 
 

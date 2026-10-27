@@ -54,11 +54,11 @@ Doze práticas em dois grupos: requisitos e planejamento (RP1 a RP6) e dados e d
 
 ### 3.3 Seleção
 
-Cada prática recebe um de três estados:
+Cada campo de prática chega com a resposta da equipe e uma de quatro situações: suficiente (existe e basta), insuficiente (existe, mas é mínimo ou incompleto), inexistente (não existe) ou não verificado (a equipe não sabe ou não analisou). O estado sai da situação, e não do texto:
 
-- Atendida: as entradas mostram que a equipe já faz isso. Sai da priorização.
-- Pendente: as entradas mostram que não faz. Vai para a priorização.
-- Indeterminada: não dá para saber. O servidor devolve a pergunta que o assistente deve fazer à equipe.
+- Atendida: a situação é suficiente. Sai da priorização.
+- Pendente: a situação é insuficiente, inexistente ou não verificado. Vai para a priorização com a mesma regra, e o motivo e a justificativa dizem qual dos três casos é. No não verificado, a próxima ação começa por levantar o que falta, e a prática também aparece no topo do registro, como ponto a verificar.
+- Indeterminada: o campo não foi informado. O servidor devolve a pergunta que o assistente deve fazer à equipe.
 
 ### 3.4 Priorização
 
@@ -66,11 +66,11 @@ Quatro critérios de 1 a 3: impacto, necessidade, dependência e esforço. O esf
 
 ### 3.5 Saídas
 
-Para cada prática pendente: prática, prioridade, justificativa, orientação e próxima ação. O conjunto ordenado por prioridade decrescente é o plano de ação. Junto vai a lista das práticas atendidas, as lacunas das indeterminadas e o registro do processo em markdown, que a equipe guarda no próprio repositório. Como o servidor não tem memória entre sessões, esse registro é o que permite retomar a análise depois.
+Para cada prática pendente: prática, prioridade, justificativa, orientação e próxima ação. O conjunto ordenado por prioridade decrescente e, em caso de empate, pelo id da prática em ordem alfabética é o plano de ação. Junto vai a lista das práticas atendidas, os pontos que a equipe ainda não verificou, as lacunas das indeterminadas e o registro do processo em markdown, com a resposta da equipe em cada prática e a versão da base, que a equipe guarda no próprio repositório. Como o servidor não tem memória entre sessões, esse registro é o que permite retomar a análise depois.
 
 ### 3.6 Fundamentação pela literatura (RAG)
 
-A pedido do professor, as orientações e justificativas passam a ser fundamentadas por trechos dos artigos levantados no PBL1. Os fichamentos são indexados por embeddings em um banco vetorial local. Quando o servidor monta a orientação de uma prática, consulta o índice e anexa os trechos mais próximos, com a fonte. O RAG não participa da pontuação. A prioridade continua vindo exclusivamente da regra estruturada.
+A pedido do professor, as orientações e justificativas passam a ser fundamentadas por trechos dos artigos levantados no PBL1. Os artigos são indexados em um banco vetorial local. Cada prática traz os trechos que sustentam a sua orientação, escolhidos pela equipe, com arquivo e página. Ao subir, o servidor confere no índice que cada trecho está na página citada; quando monta a orientação, anexa esses trechos com a fonte. O RAG não participa da pontuação. A prioridade continua vindo exclusivamente da regra estruturada.
 
 ## 4. Arquitetura
 

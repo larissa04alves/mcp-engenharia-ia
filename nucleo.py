@@ -1,22 +1,24 @@
 """A regra de análise: contexto, seleção, priorização e registro. Puro, sem IO nem modelo de linguagem."""
 
-import re
 import unicodedata
 from collections.abc import Callable
 from datetime import date
 
-from base import CRITERIOS, Base, carregar
-
-VAZIOS = {"", "-", "--", "n/a", "na", "nada"}
-
-_ANTES = r"(ainda|por enquanto|ate agora|ate o momento|no momento|atualmente|hoje)\s+"
-INICIO_NEGACAO = re.compile(rf"^({_ANTES})?(nao|nenhum[ao]?s?|nunca|jamais|inexistente|ausente)\b")
-ADVERSATIVAS = re.compile(r"\b(mas|porem|contudo|entretanto|todavia|apesar|embora|so que)\b")
-MAX_PALAVRAS_NEGACAO = 6
+from base import CRITERIOS, SITUACOES, Base, carregar
 
 ESTAGIOS = ("concepcao", "desenvolvimento", "evolucao")
 
 ATENDIDA, PENDENTE, INDETERMINADA = "atendida", "pendente", "indeterminada"
+SUFICIENTE, INEXISTENTE, NAO_VERIFICADO = "suficiente", "inexistente", "nao_verificado"
+EXISTE = {"suficiente", "insuficiente"}
+
+ROTULO_SITUACAO = {
+    "suficiente": "existe e é suficiente",
+    "insuficiente": "existe, mas não é suficiente",
+    "inexistente": "não existe",
+    "nao_verificado": "ainda não verificado",
+}
+LEVANTAR = "Levantar o que ainda não foi verificado e registrar o resultado. Depois: "
 
 CRITERIOS_FEMININOS = {"necessidade", "dependencia"}
 FEMININO = {"baixo": "baixa", "médio": "média", "alto": "alta"}
@@ -36,27 +38,25 @@ def _normalizar(texto: str) -> str:
     return " ".join(sem_acento.lower().split())
 
 
-def _nega(texto: str) -> bool:
-    return (
-        bool(INICIO_NEGACAO.match(texto))
-        and len(texto.split()) <= MAX_PALAVRAS_NEGACAO
-        and not ADVERSATIVAS.search(texto)
-    )
+def situacao_do_campo(valor) -> str | None:
+    """A situação que a equipe declarou num campo de prática; None se o campo não traz uma válida."""
+    situacao = valor.get("situacao") if isinstance(valor, dict) else None
+    return situacao if situacao in SITUACOES else None
+
+
+def _resposta(valor) -> str | None:
+    resposta = valor.get("resposta") if isinstance(valor, dict) else None
+    if not isinstance(resposta, str):
+        return None
+    return resposta.strip() or None
 
 
 def estado_do_campo(valor) -> str:
-    """Traduz o valor de um campo de prática em atendida, pendente ou indeterminada (SPEC §2.3)."""
-    if valor is None:
+    """Só suficiente atende. Existir sem bastar, não existir e não saber vão para o plano."""
+    situacao = situacao_do_campo(valor)
+    if situacao is None:
         return INDETERMINADA
-    if isinstance(valor, bool):
-        return ATENDIDA if valor else PENDENTE
-
-    texto = _normalizar(str(valor))
-    if texto in VAZIOS or _nega(texto):
-        return PENDENTE
-    if INICIO_NEGACAO.match(texto):
-        return INDETERMINADA
-    return ATENDIDA
+    return ATENDIDA if situacao == SUFICIENTE else PENDENTE
 
 
 # Os tipos dos campos de contexto vêm garantidos pelo servidor (SPEC §2.2); aqui só se descarta o que fugir deles.
@@ -102,7 +102,7 @@ def _ajuste_dispara(ajuste: dict, valores: dict) -> bool:
     if "ate" in quando:
         numero = _inteiro(valor)
         return numero is not None and numero <= quando["ate"]
-    return (estado_do_campo(valor) == ATENDIDA) == quando["preenchido"]
+    return (situacao_do_campo(valor) in EXISTE) == quando["preenchido"]
 
 
 def _ajuste_atinge(ajuste: dict, pratica: dict) -> bool:
@@ -119,38 +119,49 @@ def selecionar_praticas(base: Base, entrada: dict) -> dict:
     selecao = {ATENDIDA: [], PENDENTE: [], INDETERMINADA: []}
 
     for pratica in base.praticas:
-        estado = estado_do_campo(entrada.get(pratica["campo"]))
+        valor = entrada.get(pratica["campo"])
+        situacao = situacao_do_campo(valor)
         item = {
             "id": pratica["id"],
             "nome": pratica["nome"],
             "campo": pratica["campo"],
-            "motivo": pratica["condicoes"][estado],
+            "motivo": pratica["condicoes"][situacao or INDETERMINADA],
         }
-        if estado == INDETERMINADA:
+        if situacao is None:
             item["pergunta"] = pratica["pergunta"]
-        selecao[estado].append(item)
+        else:
+            item.update(situacao=situacao, resposta=_resposta(valor))
+        selecao[estado_do_campo(valor)].append(item)
 
     return {
         "atendidas": selecao[ATENDIDA],
         "pendentes": selecao[PENDENTE],
         "indeterminadas": selecao[INDETERMINADA],
+        "a_verificar": [p for p in selecao[PENDENTE] if p["situacao"] == NAO_VERIFICADO],
     }
 
 
 def priorizar_praticas(
-    base: Base, ids: list[str], contexto: dict, fundamentar: Fundamentar | None = None
+    base: Base, ids: list[str], contexto: dict, fundamentar: Fundamentar | None = None, entrada: dict | None = None
 ) -> list[dict]:
     """Aplica os ajustes, calcula P = I + N + D + (4 - E), classifica e ordena por P decrescente."""
+    entrada = entrada or {}
     priorizadas = []
     for pratica in (base.por_id[i] for i in ids if i in base.por_id):
-        item = _priorizar_uma(base, pratica, contexto["ajustes"])
+        item = _priorizar_uma(base, pratica, contexto["ajustes"], entrada.get(pratica["campo"]))
         if fundamentar:
             item["fundamentacao"] = fundamentar(pratica)
         priorizadas.append(item)
     return sorted(priorizadas, key=lambda item: (-item["pontuacao"], item["id"]))
 
 
-def _priorizar_uma(base: Base, pratica: dict, ajustes: list[dict]) -> dict:
+def _priorizar_uma(base: Base, pratica: dict, ajustes: list[dict], valor) -> dict:
+    # Sem situação declarada, prioriza-se como prática que não existe.
+    situacao = situacao_do_campo(valor) or INEXISTENTE
+    proxima_acao = pratica["proxima_acao"]
+    if situacao == NAO_VERIFICADO:
+        proxima_acao = LEVANTAR + proxima_acao[0].lower() + proxima_acao[1:]
+
     referencia = pratica["pontuacoes"]
     aplicados = [a for a in ajustes if _ajuste_atinge(a, pratica)]
 
@@ -165,6 +176,8 @@ def _priorizar_uma(base: Base, pratica: dict, ajustes: list[dict]) -> dict:
     return {
         "id": pratica["id"],
         "nome": pratica["nome"],
+        "situacao": situacao,
+        "resposta": _resposta(valor),
         "pontuacoes_referencia": referencia,
         "ajustes_aplicados": [
             {
@@ -179,15 +192,17 @@ def _priorizar_uma(base: Base, pratica: dict, ajustes: list[dict]) -> dict:
         "pontuacoes_finais": final,
         "pontuacao": pontuacao,
         "nivel": nivel,
-        "justificativa": _justificar(base, pratica, final, pontuacao, nivel, aplicados),
+        "justificativa": _justificar(base, pratica, situacao, final, pontuacao, nivel, aplicados),
         "orientacao": pratica["orientacao"],
-        "proxima_acao": pratica["proxima_acao"],
+        "proxima_acao": proxima_acao,
         "referencias": pratica["referencias"],
     }
 
 
-def _justificar(base: Base, pratica: dict, final: dict, pontuacao: int, nivel: str, aplicados: list[dict]) -> str:
-    partes = [pratica["condicoes"]["pendente"], f"Pontuação {pontuacao} ({nivel}): {_frase_criterios(base, final)}."]
+def _justificar(
+    base: Base, pratica: dict, situacao: str, final: dict, pontuacao: int, nivel: str, aplicados: list[dict]
+) -> str:
+    partes = [pratica["condicoes"][situacao], f"Pontuação {pontuacao} ({nivel}): {_frase_criterios(base, final)}."]
     if aplicados:
         partes.append("Ajustes de contexto: " + "; ".join(a["descricao"] for a in aplicados) + ".")
     return " ".join(partes)
@@ -207,7 +222,7 @@ def analisar(base: Base, entrada: dict, fundamentar: Fundamentar | None = None) 
     """Contexto, seleção e plano priorizado das pendentes, numa chamada."""
     contexto = identificar_contexto(base, entrada)
     selecao = selecionar_praticas(base, entrada)
-    plano = priorizar_praticas(base, [p["id"] for p in selecao["pendentes"]], contexto, fundamentar)
+    plano = priorizar_praticas(base, [p["id"] for p in selecao["pendentes"]], contexto, fundamentar, entrada)
     return {"contexto": contexto, "selecao": selecao, "plano": plano}
 
 
@@ -217,11 +232,21 @@ def render_registro(base: Base, analise: dict, quando: date | None = None) -> st
     linhas = [
         "# Registro de análise — Engenharia de IA",
         "",
-        f"Gerado em {(quando or date.today()).strftime('%d/%m/%Y')}.",
+        f"Gerado em {(quando or date.today()).strftime('%d/%m/%Y')}. Base de práticas v{base.versao}.",
         "",
-        "## Contexto do projeto",
+        f"## Pontos a verificar ({len(selecao['a_verificar'])})",
         "",
     ]
+    # No topo, para que quem retomar a análise por este arquivo comece pelo que ficou em aberto.
+    if selecao["a_verificar"]:
+        linhas += ["A equipe ainda não sabe ou não analisou estes pontos. Eles estão no plano de ação:", ""]
+        linhas += [
+            f"- **{p['id']} {p['nome']}** — {_citar(p['resposta']) or p['motivo']}" for p in selecao["a_verificar"]
+        ]
+    else:
+        linhas.append("Nenhum.")
+
+    linhas += ["", "## Contexto do projeto", ""]
     for campo, (rotulo, _) in CONTEXTO.items():
         linhas.append(f"- **{rotulo}:** {_legivel(campo, contexto['atributos'][campo])}")
 
@@ -232,7 +257,10 @@ def render_registro(base: Base, analise: dict, quando: date | None = None) -> st
     ] or ["Nenhum."]
 
     linhas += ["", f"## Práticas atendidas ({len(selecao['atendidas'])})", ""]
-    linhas += [f"- **{p['id']} {p['nome']}** — {p['motivo']}" for p in selecao["atendidas"]] or ["Nenhuma."]
+    linhas += [
+        " ".join(filter(None, [f"- **{p['id']} {p['nome']}** — {p['motivo']}", _citar(p["resposta"])]))
+        for p in selecao["atendidas"]
+    ] or ["Nenhuma."]
 
     linhas += ["", f"## Plano de ação ({len(plano)} prática(s) pendente(s))", ""]
     for posicao, item in enumerate(plano, start=1):
@@ -248,6 +276,10 @@ def render_registro(base: Base, analise: dict, quando: date | None = None) -> st
         linhas.append("Nenhuma.")
 
     return "\n".join(linhas) + "\n"
+
+
+def _citar(resposta: str | None) -> str:
+    return f"“{resposta}”" if resposta else ""
 
 
 def _legivel(campo: str, valor) -> str:
@@ -268,6 +300,8 @@ def _bloco_pratica(posicao: int, item: dict) -> list[str]:
     )
     linhas = [
         f"### {posicao}. {item['id']} {item['nome']} — {item['nivel']} ({item['pontuacao']})",
+        "",
+        " — ".join(filter(None, [f"**Situação:** {ROTULO_SITUACAO[item['situacao']]}", _citar(item["resposta"])])),
         "",
         f"**Justificativa:** {item['justificativa']}",
         "",
@@ -298,9 +332,13 @@ EXEMPLO = {
     "estagio": "concepcao",
     "dados_sensiveis": True,
     # campos de prática
-    "objetivo": "Prever quais alunos correm risco de evasão no semestre seguinte.",
-    "registro_decisoes": "não temos",
-    "qualidade_dados": False,
+    "objetivo": {
+        "situacao": "suficiente",
+        "resposta": "Prever quais alunos correm risco de evasão no semestre seguinte.",
+    },
+    "registro_decisoes": {"situacao": "inexistente", "resposta": "não temos"},
+    "documentacao_dados": {"situacao": "insuficiente", "resposta": "só o README"},
+    "problemas_limitacoes": {"situacao": "nao_verificado", "resposta": "não analisei se o banco tem alguma limitação"},
 }
 
 
