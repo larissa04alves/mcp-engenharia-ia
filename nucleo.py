@@ -319,7 +319,7 @@ def _bloco_pratica(posicao: int, item: dict) -> list[str]:
         linhas.append(f"**Ajuste:** {ajuste['descricao']} — {criterio} {efeito}")
 
     for trecho in item.get("fundamentacao", []):
-        linhas += ["", f"**Fundamentação:** “{trecho['texto']}”", f"   Fonte: {trecho['fonte']}"]
+        linhas += ["", f"**Fundamentação:** “{trecho['texto']}”", f"   Fonte: [{trecho['fonte']}]({trecho['link']})"]
 
     linhas += ["", f"**Referências:** {'; '.join(item['referencias'])}", ""]
     return linhas

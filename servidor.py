@@ -112,7 +112,9 @@ class Projeto(BaseModel):
 
 
 def _fundamentar(pratica: dict) -> list[dict]:
-    return [{"texto": t.texto, "fonte": t.fonte()} for c in pratica["citacoes"] if (t := rag.localizar(c))]
+    return [
+        {"texto": t.texto, "fonte": t.fonte(), "link": t.link()} for c in pratica["citacoes"] if (t := rag.localizar(c))
+    ]
 
 
 def _resumo_ajuste(ajuste: dict) -> dict:

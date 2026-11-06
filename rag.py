@@ -11,6 +11,7 @@ from chromadb.config import Settings
 from chromadb.errors import NotFoundError
 
 PASTA_INDICE = Path(__file__).parent / "indice"
+PASTA_LITERATURA = Path(__file__).parent / "literatura"
 COLECAO = "literatura"
 
 TAMANHO_EMENDA = 60
@@ -27,6 +28,10 @@ class Trecho:
 
     def fonte(self) -> str:
         return f"{self.arquivo}, p. {self.pagina}"
+
+    def link(self) -> str:
+        # Absoluto: o registro é salvo no repositório da equipe, fora deste.
+        return (PASTA_LITERATURA / self.arquivo).as_uri()
 
 
 @cache

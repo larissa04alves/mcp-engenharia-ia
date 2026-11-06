@@ -31,6 +31,12 @@ def test_fonte_traz_arquivo_e_pagina():
     assert Trecho("t", "artigo.pdf", 7).fonte() == "artigo.pdf, p. 7"
 
 
+def test_link_aponta_o_arquivo_em_literatura():
+    link = Trecho("t", "Documenting Architecture Decisions.pdf", 2).link()
+    assert link == (rag.PASTA_LITERATURA / "Documenting Architecture Decisions.pdf").as_uri()
+    assert link.startswith("file:///") and link.endswith("/literatura/Documenting%20Architecture%20Decisions.pdf")
+
+
 def test_localiza_trecho_que_atravessa_dois_pedacos(monkeypatch):
     monkeypatch.setattr(rag, "_colecao", ColecaoFalsa)
     texto = (
