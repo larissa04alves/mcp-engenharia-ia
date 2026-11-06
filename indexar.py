@@ -9,7 +9,7 @@ from pypdf import PdfReader
 
 import rag
 
-PASTA_LITERATURA = Path(__file__).parent / "literatura"
+PASTA_LITERATURA = rag.PASTA_LITERATURA
 EXTENSOES = (".pdf", ".md", ".txt")
 
 TAMANHO_PEDACO = 800

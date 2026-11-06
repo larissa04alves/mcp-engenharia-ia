@@ -221,6 +221,12 @@ def test_rag_nao_altera_a_pontuacao():
     assert com["plano"][0]["fundamentacao"] == [{"texto": "t", "fonte": "f.pdf, p. 1"}]
 
 
+def test_registro_linka_a_fonte_ao_artigo():
+    trecho = {"texto": "t", "fonte": "f.pdf, p. 1", "link": "file:///literatura/f.pdf"}
+    registro = render_registro(BASE, analisar(BASE, {"requisitos": r("inexistente")}, lambda ficha: [trecho]))
+    assert "Fonte: [f.pdf, p. 1](file:///literatura/f.pdf)" in registro
+
+
 def test_registro_traz_as_secoes_e_o_calculo_aberto():
     entrada = {
         "estagio": "concepcao",
